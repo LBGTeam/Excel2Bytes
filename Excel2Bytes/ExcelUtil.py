@@ -7,6 +7,7 @@ from enum import Enum
 import numpy as np
 import pandas as pd
 
+from CSScriptBuilder import CSScriptBuilder
 from FileUtil import CopyFile
 from LanguageUtil import GetLanguageKey, TableLanguageCSName
 from LogUtil import ShowLog
@@ -95,7 +96,15 @@ class GenerateScriptType(Enum):
     FieldType = 0
     FindType = 1
     LNGType = 2
-    CustomType = 3
+    CustomTypeField = 3
+    CustomType = 4
+
+
+IgnoreSizeTypes = [
+    GenerateScriptType.FieldType,
+    GenerateScriptType.LNGType,
+    GenerateScriptType.CustomTypeField,
+]
 
 
 # 读取bytes的时候的类型
@@ -114,6 +123,14 @@ def GetCShapeType(fieldType, isBase=False):
         pattern = r"map\|(\w+)\|(\w+)"
         replacement = r"Dictionary<\1,\2>"
         return re.sub(pattern, replacement, fieldType, flags=re.IGNORECASE)
+    if 'dictionary' in fieldType.lower():
+        pattern = r"dictionary\|(\w+)\|(\w+)"
+        replacement = r"Dictionary<\1,\2>"
+        return re.sub(pattern, replacement, fieldType, flags=re.IGNORECASE)
+    if 'slc' in fieldType.lower():
+        return f'{GetCShapeType(fieldType.replace("slc|", ""))}[]'
+    if 'double_slc' in fieldType.lower():
+        return f'{GetCShapeType(fieldType.replace("double_slc|", ""))}[][]'
     if fieldType.replace('[]', '') in typeMap:
         return fieldType
     return fieldType
@@ -124,32 +141,46 @@ def GetDataProperty(fieldType, fieldName, script):
     if 'LNGRef' in fieldType:
         script.AppendLine(f"private uint {fieldName}Id;")
         script.AppendLine(f"public {valueType} {fieldName} => Table{TableLanguageCSName}.Find({fieldName}Id);")
+    elif 'ResName' in fieldType:
+        script.AppendLine(f"public string {fieldName};")
     else:
-        script.AppendLine(f"public {valueType} {fieldName};")
+        script.AppendLine(f"public {GetCShapeType(fieldType, True)} {fieldName};")
 
 
 def GetDataAssignment(fieldType, fieldName, script):
     if '[][]' in fieldType:
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)}[{fieldName}Size][];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        script.AppendLine(f"var {fieldName}Size2 = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)}[{fieldName}Size2];")
-        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Size2; {fieldName}Index2++")
-        GetDataAssignmentBase(fieldType[:-4], f"{fieldName}[{fieldName}Index][{fieldName}Index2]", script)
+        script.AppendLine(f'var {fieldName}Row = reader.ReadUInt16();')
+        script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Row][];")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Row; {fieldName}Index++")
+        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Col];")
+        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Col; {fieldName}Index2++")
+        GetDataAssignment(fieldType[:-2], f"{fieldName}[{fieldName}Index][{fieldName}Index2]", script)
         script.EndFor()
+    elif 'double_slc' in fieldType.lower():
+        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
+        script.AppendLine(f'var {fieldName}Row = reader.ReadUInt16();')
+        script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Row][];")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Row; {fieldName}Index++")
+        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Col];")
+        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Col; {fieldName}Index2++")
+        GetDataAssignment(fieldType.replace('double_slc|', '')[:-2], f"{fieldName}[{fieldName}Index][{fieldName}Index2]", script)
         script.EndFor()
     elif '[]' in fieldType:
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)}[{fieldName}Size];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        GetDataAssignmentBase(fieldType[:-2], f"{fieldName}[{fieldName}Index]", script)
+        script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
+        GetDataAssignment(fieldType[:-2], f"{fieldName}[{fieldName}Index]", script)
         script.EndFor()
     elif 'slc' in fieldType.lower():
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)}[{fieldName}Size];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        GetDataAssignmentBase(fieldType.replace('slc|', ''), f"{fieldName}[{fieldName}Index]", script)
+        script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
+        GetDataAssignment(fieldType.replace('slc|', ''), f"{fieldName}[{fieldName}Index]", script)
         script.EndFor()
     elif 'map' in fieldType.lower():
         pattern = r"map\|(\w+)\|(\w+)"
@@ -175,20 +206,6 @@ def GetDataAssignment(fieldType, fieldName, script):
         GetDataAssignmentBase(type2, f"var {fieldName}value", script)
         script.AppendLine(f"{fieldName}.Add({fieldName}key, {fieldName}value);")
         script.EndFor()
-    elif 'double_slc' in fieldType.lower():
-        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)}[{fieldName}Size][];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        script.AppendLine(f"var {fieldName}Size2 = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)}[{fieldName}Size2][];")
-        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Size2; {fieldName}Index2++")
-        script.AppendLine(f"var {fieldName}Size3 = reader.ReadUInt16();")
-        script.AppendLine(f"{fieldName}[{fieldName}Index][{fieldName}Index2] = new {GetCShapeType(fieldType)}[{fieldName}Size3];")
-        script.BeginFor(f"var {fieldName}Index3 = 0; {fieldName}Index3 < {fieldName}Size3; {fieldName}Index3++")
-        GetDataAssignmentBase(fieldType.replace('double_slc|', ''), f"{fieldName}[{fieldName}Index][{fieldName}Index2][{fieldName}Index3]", script)
-        script.EndFor()
-        script.EndFor()
-        script.EndFor()
     else:
         GetDataAssignmentBase(fieldType, fieldName, script)
 
@@ -196,7 +213,7 @@ def GetDataAssignment(fieldType, fieldName, script):
 def GetDataAssignmentBase(fieldType, fieldName, script):
     if 'LNGRef' in fieldType:
         script.AppendLine(f"{fieldName}Id = reader.ReadUInt32();")
-    if 'ResName' in fieldType:
+    elif 'ResName' in fieldType:
         script.AppendLine(f"{fieldName} = reader.ReadString();")
     else:
         script.AppendLine(f"{fieldName} = reader.{GetTypeRead(fieldType)}();")
@@ -207,7 +224,7 @@ def GetFieldProperty(fieldType, fieldName, fieldValue, script):
     if 'LNGRef' in fieldType:
         script.AppendLine(
             f"public static {valueType} {fieldName} => TableLanguage.Find(Instance.ReadData({fieldValue}));")
-    if 'ResName' in fieldType:
+    elif 'ResName' in fieldType:
         script.AppendLine(
             f"public static {valueType} {fieldName} => Instance.ReadData({fieldValue});")
     else:
@@ -215,8 +232,23 @@ def GetFieldProperty(fieldType, fieldName, fieldValue, script):
             f"public static {valueType} {fieldName} => Instance.ReadData({fieldValue});")
 
 
+def GetCustomField(fieldType, fieldName, script):
+    valueType = GetCShapeType(fieldType)
+    script.AppendLine(f"public {valueType} m_{fieldName};")
+
+
+def GetCustomFieldProperty(fieldType, fieldName, script):
+    valueType = GetCShapeType(fieldType)
+    if 'LNGRef' in fieldType:
+        script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
+    if 'ResName' in fieldType:
+        script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
+    else:
+        script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
+
+
 # 将Excel数据转换为二进制
-def TurnBytesByExcel(excelData, startRow, startColumn, isNeedRecordSize, generateScriptType, script=None):
+def TurnBytesByExcel(excelData, startRow, startColumn, generateScriptType, script=None):
     rows = excelData.iloc[startRow:].iterrows() if startRow > 0 else excelData.iterrows()
     firstRow = excelData.iloc[0]
     columns_with_c = np.where(firstRow.str.contains('c', case=False))[0]
@@ -228,24 +260,45 @@ def TurnBytesByExcel(excelData, startRow, startColumn, isNeedRecordSize, generat
     valueOldType = str(excelData.iloc[2, secondIndex])
     dataBytes = b''
     allSize = 0
+    scInit = CSScriptBuilder()
+    scField = CSScriptBuilder()
+    scProperty = CSScriptBuilder()
     for index, row in rows:
         tBytes = b''
         tSize = 0
+        fieldType = row[secondIndex]
         if generateScriptType == GenerateScriptType.FieldType:
             GetFieldProperty(valueOldType, row[firstIndex], allSize, script)
+        elif generateScriptType == GenerateScriptType.CustomTypeField:
+            GetDataAssignment(fieldType, f'm_{row[firstIndex]}', scInit)
+            GetCustomField(fieldType, row[firstIndex], scField)
+            GetCustomFieldProperty(fieldType, row[firstIndex], scProperty)
         # 将数据添加到 Data1 对象中
         for col_index in range(startColumn, len(row)):
             if 'c' in str(excelData.iloc[0, col_index]):  # 判断是否需要的数据
-                fieldType = excelData.iloc[2, col_index]
+                if generateScriptType != GenerateScriptType.CustomTypeField:
+                    fieldType = excelData.iloc[2, col_index]
                 fieldValue = row[col_index]
                 data = TurnBytes(fieldType, fieldValue)
                 tBytes += data[0]
                 tSize += data[1]
-        if generateScriptType != GenerateScriptType.FieldType and generateScriptType != GenerateScriptType.LNGType:
+        if generateScriptType not in IgnoreSizeTypes:
             tSize += typeMap[SizeMap][1]
             dataBytes += struct.pack(f"{typeMap[SizeMap][0]}", tSize)
         dataBytes += tBytes
         allSize += tSize
+    if generateScriptType == GenerateScriptType.CustomTypeField:
+        script.BeginMethod('InitData', 'public', 'void')
+        script.AppendEnter()
+        for sc in scInit:
+            script.Append(sc)
+        script.EndMethod()
+        script.AppendEnter()
+        for sc in scField:
+            script.Append(sc)
+        script.AppendEnter()
+        for sc in scProperty:
+            script.Append(sc)
     return dataBytes
 
 
@@ -266,40 +319,50 @@ def TurnBytes(fieldType, fieldValue):
         singleType = fieldType[:-2]
         pSize = 0
         pByte = b''
+        maxRow = 0
+        maxCol = 0
         for singleValue in fieldValue.split('|'):
             qSize = 0
             qByte = b''
+            maxRow += 1
+            maxCol = np.max(maxCol, len(singleValue.split(':')))
             for value in singleValue.split(':'):
                 sByte, sSize = SingleTurnBytes(singleType, value)
                 qByte += sByte
                 qSize += sSize
             pByte += struct.pack(f"{typeMap[SizeMap][0]}", qSize) + qByte
             pSize += typeMap[SizeMap][1] + qSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", pSize) + pByte
-        pSize += typeMap[SizeMap][1]
+        byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
+                + struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + pByte)
+        pSize += (typeMap[SizeMap][1] * 3)
         return byte, pSize
     if '[]' in fieldType:
         singleType = fieldType[:-2]
         size = 0
         tByte = b''
+        maxCount = 0
         if not pd.isna(fieldValue):
+            maxCount = len(fieldValue.split('|'))
             for singleValue in fieldValue.split('|'):
                 sByte, sSize = SingleTurnBytes(singleType, singleValue)
                 tByte += sByte
                 size += sSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
-        size += typeMap[SizeMap][1]
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
+        size += (typeMap[SizeMap][1] * 2)
         return byte, size
     if 'slc' in fieldType.lower():
         singleType = fieldType.replace('slc|', '')
         size = 0
         tByte = b''
-        for singleValue in fieldValue.split('|'):
-            sByte, sSize = SingleTurnBytes(singleType, singleValue)
-            tByte += sByte
-            size += sSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
-        size += typeMap[SizeMap][1]
+        maxCount = 0
+        if not pd.isna(fieldValue):
+            maxCount = len(fieldValue.split('|'))
+            for singleValue in fieldValue.split('|'):
+                sByte, sSize = SingleTurnBytes(singleType, singleValue)
+                tByte += sByte
+                size += sSize
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
+        size += (typeMap[SizeMap][1] * 2)
         return byte, size
     if 'map' in fieldType.lower():
         pattern = r"map\|(\w+)\|(\w+)"
@@ -338,20 +401,25 @@ def TurnBytes(fieldType, fieldValue):
         return byte, size
     if 'double_slc' in fieldType.lower():
         singleType = fieldType.replace('double_slc|', '')
-        size = 0
-        tByte = b''
+        pSize = 0
+        pByte = b''
+        maxRow = 0
+        maxCol = 0
         for singleValue in fieldValue.split('|'):
             qSize = 0
             qByte = b''
+            maxRow += 1
+            maxCol = np.max(maxCol, len(singleValue.split(':')))
             for value in singleValue.split(':'):
                 sByte, sSize = SingleTurnBytes(singleType, value)
                 qByte += sByte
                 qSize += sSize
-            tByte += struct.pack(f"{typeMap[SizeMap][0]}", qSize) + qByte
-            size += typeMap[SizeMap][1] + qSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
-        size += typeMap[SizeMap][1]
-        return byte, size
+            pByte += struct.pack(f"{typeMap[SizeMap][0]}", qSize) + qByte
+            pSize += typeMap[SizeMap][1] + qSize
+        byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
+                + struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + pByte)
+        pSize += (typeMap[SizeMap][1] * 3)
+        return byte, pSize
     else:
         return SingleTurnBytes(fieldType, fieldValue)
 

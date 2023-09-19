@@ -8,8 +8,9 @@ class CSScriptBuilder(list):
 
     def Append(self, message):
         if self.BlackNum > 0:
-            self.append('\t' * self.BlackNum)
-        self.append(message)
+            self.append('\t' * self.BlackNum + message)
+        else:
+            self.append(message)
 
     def AppendEnter(self):
         self.Append('\n')
@@ -18,8 +19,9 @@ class CSScriptBuilder(list):
         if len(self) > 0:
             self.append('\n')
         if self.BlackNum > 0:
-            self.append('\t' * self.BlackNum)
-        self.append(message)
+            self.append('\t' * self.BlackNum + message)
+        else:
+            self.append(message)
 
     def AppendEmptyLine(self):
         self.AppendLine('')

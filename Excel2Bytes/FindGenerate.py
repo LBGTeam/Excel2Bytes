@@ -11,8 +11,7 @@ from PathUtil import BytesPath
 def GenerateFindBytes(excelPath, sheetName, scriptName=None):
     scriptName = GetScriptsName(excelPath, sheetName, scriptName)
     excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
-    isNeedSize = IsNeedRecordSize(excelData)
-    data_bytes = TurnBytesByExcel(excelData, 4, 0, isNeedSize, GenerateScriptType.FindType)
+    data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.FindType)
     # 获取第一行包含'c'的列
     filteredColumns = excelData.columns[excelData.iloc[0].fillna('').str.contains('c', case=False)]
     pair = []
