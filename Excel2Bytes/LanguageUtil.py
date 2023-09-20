@@ -72,6 +72,8 @@ def SaveLangData(key, data):
 
 
 def GetLanguageKey(value):
+    if value.isspace() or value == '':
+        return 0
     if value in LanguageDict[CNLanguage].values():
         for key, val in LanguageDict[CNLanguage].items():
             if val == value:

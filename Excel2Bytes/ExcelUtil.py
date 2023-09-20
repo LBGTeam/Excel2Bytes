@@ -107,6 +107,13 @@ IgnoreSizeTypes = [
 ]
 
 
+def GetFieldName(fieldType, fieldName):
+    if 'LNGRef' in fieldType:
+        return f'{fieldName}Id'
+    else:
+        return fieldName
+
+
 # 读取bytes的时候的类型
 def GetCShapeType(fieldType, isBase=False):
     if 'LNGRef' in fieldType:
@@ -139,15 +146,16 @@ def GetCShapeType(fieldType, isBase=False):
 def GetDataProperty(fieldType, fieldName, script):
     valueType = GetCShapeType(fieldType)
     if 'LNGRef' in fieldType:
-        script.AppendLine(f"private uint {fieldName}Id;")
-        script.AppendLine(f"public {valueType} {fieldName} => Table{TableLanguageCSName}.Find({fieldName}Id);")
+        script.AppendLine(f"private uint {GetFieldName(fieldType, fieldName)};")
+        script.AppendLine(f"public {valueType} {fieldName} => Table{TableLanguageCSName}"
+                          f".Find({GetFieldName(fieldType, fieldName)});")
     elif 'ResName' in fieldType:
         script.AppendLine(f"public string {fieldName};")
     else:
         script.AppendLine(f"public {GetCShapeType(fieldType, True)} {fieldName};")
 
 
-def GetDataAssignment(fieldType, fieldName, script):
+def GetDataAssignment(fieldType, fieldName, script, isInitLNG=True):
     if '[][]' in fieldType:
         singleType = fieldType[:-4]
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
@@ -157,7 +165,7 @@ def GetDataAssignment(fieldType, fieldName, script):
         script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName}[{fieldName}RowIndex] = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Col];")
         script.BeginFor(f"var {fieldName}ColIndex = 0; {fieldName}ColIndex < {fieldName}Col; {fieldName}ColIndex++")
-        GetDataAssignment(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script)
+        GetDataAssignmentBase(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script, False, isInitLNG)
         script.EndFor()
         script.EndFor()
     elif 'double_slc' in fieldType.lower():
@@ -169,64 +177,69 @@ def GetDataAssignment(fieldType, fieldName, script):
         script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName}[{fieldName}RowIndex] = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Col];")
         script.BeginFor(f"var {fieldName}ColIndex = 0; {fieldName}ColIndex < {fieldName}Col; {fieldName}ColIndex++")
-        GetDataAssignment(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script)
+        GetDataAssignmentBase(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script, False, isInitLNG)
         script.EndFor()
         script.EndFor()
     elif '[]' in fieldType:
         script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
         script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
-        GetDataAssignment(fieldType[:-2], f"{fieldName}[{fieldName}Index]", script)
+        GetDataAssignmentBase(fieldType[:-2], f"{fieldName}[{fieldName}Index]", script, False, isInitLNG)
         script.EndFor()
     elif 'slc' in fieldType.lower():
         script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
         script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
-        GetDataAssignment(fieldType.replace('slc|', ''), f"{fieldName}[{fieldName}Index]", script)
+        GetDataAssignmentBase(fieldType.replace('slc|', ''), f"{fieldName}[{fieldName}Index]", script, False, isInitLNG)
         script.EndFor()
     elif 'map' in fieldType.lower():
         pattern = r"map\|(\w+)\|(\w+)"
         matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
         type1 = matches[0][0]
         type2 = matches[0][1]
-        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
+        script.AppendLine(f"var {fieldName}Count = reader.ReadUInt16();")
         script.AppendLine(f"{fieldName} = new Dictionary<{GetCShapeType(type1)}, {GetCShapeType(type2)}>();")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        GetDataAssignmentBase(type1, f"var {fieldName}key", script)
-        GetDataAssignmentBase(type2, f"var {fieldName}value", script)
-        script.AppendLine(f"{fieldName}.Add({fieldName}key, {fieldName}value);")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
+        GetDataAssignmentBase(type1, f"{fieldName}Key", script, True, isInitLNG)
+        GetDataAssignmentBase(type2, f"{fieldName}Value", script, True, isInitLNG)
+        script.AppendLine(f"{fieldName}.Add({fieldName}Key, {fieldName}Value);")
         script.EndFor()
     elif 'dictionary' in fieldType.lower():
-        pattern = r"dictionary\|(\w+)\|(\w+)"
+        pattern = r"dictionary<(\w+),(\w+)>"
         matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
         type1 = matches[0][0]
         type2 = matches[0][1]
-        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
+        script.AppendLine(f"var {fieldName}Count = reader.ReadUInt16();")
         script.AppendLine(f"{fieldName} = new Dictionary<{GetCShapeType(type1)}, {GetCShapeType(type2)}>();")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Size; {fieldName}Index++")
-        GetDataAssignmentBase(type1, f"var {fieldName}key", script)
-        GetDataAssignmentBase(type2, f"var {fieldName}value", script)
-        script.AppendLine(f"{fieldName}.Add({fieldName}key, {fieldName}value);")
+        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
+        GetDataAssignmentBase(type1, f"{fieldName}Key", script, True, isInitLNG)
+        GetDataAssignmentBase(type2, f"{fieldName}Value", script, True, isInitLNG)
+        script.AppendLine(f"{fieldName}.Add({fieldName}Key, {fieldName}Value);")
         script.EndFor()
     else:
-        GetDataAssignmentBase(fieldType, fieldName, script)
+        GetDataAssignmentBase(fieldType, fieldName, script, False, isInitLNG)
 
 
-def GetDataAssignmentBase(fieldType, fieldName, script):
+def GetDataAssignmentBase(fieldType, fieldName, script, isNewField=False, isInitLNG=True):
+    leftFieldName = fieldName if not isNewField else f"var {fieldName}"
     if 'LNGRef' in fieldType:
-        script.AppendLine(f"{fieldName}Id = reader.ReadUInt32();")
-    elif 'ResName' in fieldType:
-        script.AppendLine(f"{fieldName} = reader.ReadString();")
+        script.AppendLine(f"var LNGId = reader.ReadUInt32();")
+        if isInitLNG:
+            script.AppendLine(f"{leftFieldName} = Table{TableLanguageCSName}.Find(LNGId);")
+    elif 'ResName' in fieldType or 'string' in fieldType:
+        script.AppendLine(f"var tSize = reader.ReadUInt16();")
+        script.AppendLine(f"var tBytes = reader.ReadBytes(tSize);")
+        script.AppendLine(f"{leftFieldName} = Encoding.UTF8.GetString(tBytes);")
     else:
-        script.AppendLine(f"{fieldName} = reader.{GetTypeRead(fieldType)}();")
+        script.AppendLine(f"{leftFieldName} = reader.{GetTypeRead(fieldType)}();")
 
 
 def GetFieldProperty(fieldType, fieldName, fieldValue, script):
     valueType = GetCShapeType(fieldType)
-    if 'LNGRef' in fieldType:
+    if 'LNGRef' == fieldType:
         script.AppendLine(
-            f"public static {valueType} {fieldName} => TableLanguage.Find(Instance.ReadData({fieldValue}));")
-    elif 'ResName' in fieldType:
+            f"public static {valueType} {fieldName} => Instance.ReadData({fieldValue});")
+    elif 'ResName' == fieldType:
         script.AppendLine(
             f"public static {valueType} {fieldName} => Instance.ReadData({fieldValue});")
     else:
@@ -243,7 +256,7 @@ def GetCustomFieldProperty(fieldType, fieldName, script):
     valueType = GetCShapeType(fieldType)
     if 'LNGRef' in fieldType:
         script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
-    if 'ResName' in fieldType:
+    elif 'ResName' in fieldType:
         script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
     else:
         script.AppendLine(f"public static {valueType} {fieldName} => Instance.m_{fieldName};")
@@ -331,10 +344,8 @@ def TurnBytes(fieldType, fieldValue):
                 sByte, sSize = SingleTurnBytes(singleType, value)
                 qByte += sByte
                 qSize += sSize
-            print(qSize, maxCol)
             pByte += struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + qByte
             pSize += (typeMap[SizeMap][1] * 2) + qSize
-        print(pSize, maxRow)
         byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
                 + pByte)
         pSize += (typeMap[SizeMap][1] * 2)
@@ -372,7 +383,7 @@ def TurnBytes(fieldType, fieldValue):
                 tByte += sByte
                 size += sSize
         byte = struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
-        size += (typeMap[SizeMap][1] * 2)
+        size += typeMap[SizeMap][1]
         return byte, size
     if 'slc' in fieldType.lower():
         singleType = fieldType.replace('slc|', '')
@@ -386,7 +397,7 @@ def TurnBytes(fieldType, fieldValue):
                 tByte += sByte
                 size += sSize
         byte = struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
-        size += (typeMap[SizeMap][1] * 2)
+        size += typeMap[SizeMap][1]
         return byte, size
     if 'map' in fieldType.lower():
         pattern = r"map\|(\w+)\|(\w+)"
@@ -395,32 +406,39 @@ def TurnBytes(fieldType, fieldValue):
         type2 = matches[0][1]
         size = 0
         tByte = b''
+        tCon = 0
         if not pd.isna(fieldValue):
+            tCon = len(fieldValue.split('|'))
             for singleValue in fieldValue.split('|'):
-                qByte, qSize = SingleTurnBytes(type1, singleValue.split(':')[0])
+                array = singleValue.split(':')
+                qByte, qSize = SingleTurnBytes(type1, array[0])
                 tByte += qByte
                 size += qSize
-                qByte, qSize = SingleTurnBytes(type2, singleValue.split(':')[1])
+                qByte, qSize = SingleTurnBytes(type2, array[1])
                 tByte += qByte
                 size += qSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", tCon) + tByte
         size += typeMap[SizeMap][1]
         return byte, size
     if 'dictionary' in fieldType.lower():
-        pattern = r"dictionary\|(\w+)\|(\w+)"
+        pattern = r"dictionary<(\w+),(\w+)>"
         matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
         type1 = matches[0][0]
         type2 = matches[0][1]
         size = 0
         tByte = b''
-        for singleValue in fieldValue.split('|'):
-            qByte, qSize = SingleTurnBytes(type1, singleValue.split(':')[0])
-            tByte += qByte
-            size += qSize
-            qByte, qSize = SingleTurnBytes(type2, singleValue.split(':')[1])
-            tByte += qByte
-            size += qSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
+        tCon = 0
+        if not pd.isna(fieldValue):
+            tCon = len(fieldValue.split('|'))
+            for singleValue in fieldValue.split('|'):
+                array = singleValue.split(':')
+                qByte, qSize = SingleTurnBytes(type1, array[0])
+                tByte += qByte
+                size += qSize
+                qByte, qSize = SingleTurnBytes(type2, array[1])
+                tByte += qByte
+                size += qSize
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", tCon) + tByte
         size += typeMap[SizeMap][1]
         return byte, size
     else:
@@ -432,11 +450,9 @@ def SingleTurnBytes(fieldType, fieldValue):
     if fieldType in typeMap:
         fmt, size = typeMap[fieldType]
         return struct.pack(fmt, GetBaseType(fieldType)(fieldValue)), size
-    elif fieldType == 'string':
+    elif fieldType == 'string' or fieldType == 'ResName':
         if pd.isna(fieldValue):
-            byte = struct.pack(f"{typeMap[SizeMap][0]}", 0)
-            size = typeMap[SizeMap][1]
-            return byte, size
+            fieldValue = ' '
         value = fieldValue.encode('utf-8')
         strSize = len(str(value))
         byte = struct.pack(f"{typeMap[SizeMap][0]}", strSize) + struct.pack(f'{strSize}s', value)
@@ -446,17 +462,6 @@ def SingleTurnBytes(fieldType, fieldValue):
         if pd.isna(fieldValue):
             struct.pack('I', 0), 4
         return struct.pack('I', GetLanguageKey(fieldValue)), 4
-    elif 'ResName' in fieldType:
-        if pd.isna(fieldValue):
-            byte = struct.pack(f"{typeMap[SizeMap][0]}", 0)
-            size = typeMap[SizeMap][1]
-            return byte, size
-        value = fieldValue.encode('utf-8')
-        strSize = len(str(value))
-        AddResRef(fieldValue)
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", strSize) + struct.pack(f'{strSize}s', value)
-        size = typeMap[SizeMap][1] + strSize
-        return byte, size
     else:
         sys.stderr.write(f"Error: Unknown field type '{fieldType}'\n")
         input("Press Enter to exit...")

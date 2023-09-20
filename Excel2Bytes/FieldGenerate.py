@@ -19,10 +19,9 @@ def GenerateFieldBytes(excelPath, sheetName, scriptName=None):
     columns_with_c = np.where(firstRow.str.contains('c', case=False))[0]
     secondIndex = columns_with_c[1]
     secValueOldType = str(excelData.iloc[2, secondIndex])
-    secValueType = GetCShapeType(secValueOldType, True)
     Scripts = CSScriptBuilder()
     data_bytes = TurnBytesByExcel(excelData, 4, 1, GenerateScriptType.FieldType, Scripts)
-    FieldExcelScript(scriptName, secValueType, scriptName.lower(), Scripts)
+    FieldExcelScript(scriptName, secValueOldType, scriptName.lower(), Scripts)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(BytesPath, f'{scriptName.lower()}.bytes')
     with open(bytesPath, 'wb') as f:
