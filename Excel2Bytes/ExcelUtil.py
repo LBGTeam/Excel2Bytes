@@ -453,6 +453,8 @@ def SingleTurnBytes(fieldType, fieldValue):
     elif fieldType == 'string' or fieldType == 'ResName':
         if pd.isna(fieldValue):
             fieldValue = ' '
+        if fieldType == 'ResName':
+            AddResRef(fieldValue)
         value = fieldValue.encode('utf-8')
         strSize = len(str(value))
         byte = struct.pack(f"{typeMap[SizeMap][0]}", strSize) + struct.pack(f'{strSize}s', value)

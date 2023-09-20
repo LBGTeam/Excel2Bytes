@@ -35,6 +35,6 @@ if __name__ == '__main__':
     GenerateLNGBytes(TableLanguageCSName)
     SaveLanguage()
     SaveResList()
-    CopyExportFiles()
+    # CopyExportFiles()
     # CreateTableManagerCs()
 

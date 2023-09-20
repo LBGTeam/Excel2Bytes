@@ -1,7 +1,6 @@
 import json
-import os
 
-from PathUtil import SavePath
+from PathUtil import ResRefFileListPath
 
 ResList = []
 
@@ -12,5 +11,5 @@ def AddResRef(resName):
 
 
 def SaveResList():
-    with open(os.path.join(SavePath, 'reslist.json'), 'w') as f:
+    with open(ResRefFileListPath, 'w') as f:
         json.dump(ResList, f, indent=4, ensure_ascii=False)
