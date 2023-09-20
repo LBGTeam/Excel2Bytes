@@ -173,14 +173,12 @@ def GetDataAssignment(fieldType, fieldName, script):
         script.EndFor()
         script.EndFor()
     elif '[]' in fieldType:
-        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
         script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
         script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
         GetDataAssignment(fieldType[:-2], f"{fieldName}[{fieldName}Index]", script)
         script.EndFor()
     elif 'slc' in fieldType.lower():
-        script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
         script.AppendLine(f'var {fieldName}Count = reader.ReadUInt16();')
         script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Count];")
         script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Count; {fieldName}Index++")
@@ -373,7 +371,7 @@ def TurnBytes(fieldType, fieldValue):
                 sByte, sSize = SingleTurnBytes(singleType, singleValue)
                 tByte += sByte
                 size += sSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
         size += (typeMap[SizeMap][1] * 2)
         return byte, size
     if 'slc' in fieldType.lower():
@@ -387,7 +385,7 @@ def TurnBytes(fieldType, fieldValue):
                 sByte, sSize = SingleTurnBytes(singleType, singleValue)
                 tByte += sByte
                 size += sSize
-        byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
+        byte = struct.pack(f"{typeMap[SizeMap][0]}", maxCount) + tByte
         size += (typeMap[SizeMap][1] * 2)
         return byte, size
     if 'map' in fieldType.lower():
