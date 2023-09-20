@@ -42,9 +42,6 @@ def GenerateFindFieldBytes(excelPath, sheetName, scriptName):
 
 
 def GenerateLNGBytes(sheetName, scriptName):
-    if CNLanguage == sheetName:
-        if scriptName is None:
-            scriptName = f'{os.path.basename(LanguageXlsxPath).split(".")[0]}{CNLanguage}'
     excelData = pd.read_excel(LanguageXlsxPath, sheet_name=sheetName, header=None)
     data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)
     if CNLanguage == sheetName:
@@ -57,3 +54,8 @@ def GenerateLNGBytes(sheetName, scriptName):
     with open(bytesPath, 'wb') as f:
         f.write(data_bytes)
     ShowLog(f'生成二进制文件: {bytesPath}')
+
+
+def GenerateNoExportLNGBytes(excelPath, sheetName):
+    excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
+    TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)

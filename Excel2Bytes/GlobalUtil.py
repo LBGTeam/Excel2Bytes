@@ -10,8 +10,9 @@ class GenerateScriptType(Enum):
     FieldType = 1
     FindType = 2
     LNGType = 3
-    CustomTypeField = 4
-    CustomType = 5
+    NoExportLNGType = 4
+    CustomTypeField = 5
+    CustomType = 6
 
 
 SavePath = os.path.join(ExePath(), 'Save')
