@@ -33,7 +33,13 @@ IsUpdateLng = True
 CNLanguage = 'cn'
 LanguageKey = ['tw', 'en']
 LanguageDict = {}
-TableLanguageCSName = 'Language'
+TableLanguageCSName = 'Languages'
+
+TAbleRootNamespace = 'LBRuntime'
+TableAssembly = f'{TAbleRootNamespace}.Table'
+TableLoadAssembly = f'{TAbleRootNamespace}.Table.Loader'
+TableStructAssembly = f'{TAbleRootNamespace}.Table.Structure'
+TableResLoadAssembly = 'LBUnity'
 
 
 IgnoreSizeTypes = [

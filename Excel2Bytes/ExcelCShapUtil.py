@@ -1,6 +1,6 @@
 from CSScriptBuilder import CSScriptBuilder
-from ExcelUtil import TableLoadAssembly, GetCShapeType, TableStructAssembly, TableResLoadAssembly, OfferMap, SizeMap, \
-    typeMap, GetDataProperty, GetTypeRead, GetDataAssignment
+from GlobalUtil import TableResLoadAssembly, TableLoadAssembly, TableStructAssembly
+from ExcelUtil import GetCShapeType, OfferMap, SizeMap, typeMap, GetDataProperty, GetTypeRead, GetDataAssignment
 
 
 def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder):

@@ -12,14 +12,8 @@ from FileUtil import CopyFile
 from LanguageUtil import GetLanguageKey
 from LogUtil import ShowLog
 from GlobalUtil import ScriptsPath, ScriptsExportPath, BytesPath, BytesExportPath, GenerateScriptType, IgnoreSizeTypes, \
-    TableLanguageCSName
+    TableLanguageCSName, LNGBytesPath
 from ResRefUtil import AddResRef
-
-TAbleRootNamespace = 'ZHRuntime'
-TableAssembly = f'{TAbleRootNamespace}.Table'
-TableLoadAssembly = f'{TAbleRootNamespace}.Table.Loader'
-TableStructAssembly = f'{TAbleRootNamespace}.Table.Structure'
-TableResLoadAssembly = 'ZHUnity'
 
 SizeMap = 'ushort'
 OfferMap = 'ulong'
@@ -476,6 +470,8 @@ def CopyBytes():
     for root, dirs, files in os.walk(BytesPath):
         for file in files:
             CopyFile(os.path.join(BytesPath, file), os.path.join(BytesExportPath, file))
+        for tDir in dirs:
+            shutil.copytree(os.path.join(LNGBytesPath, tDir), os.path.join(BytesExportPath, tDir))
 
 
 def DeleteBytes():
