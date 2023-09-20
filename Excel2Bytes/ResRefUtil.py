@@ -1,6 +1,6 @@
 import json
 
-from PathUtil import ResRefFileListPath
+from GlobalUtil import ResRefFileListPath
 
 ResList = []
 

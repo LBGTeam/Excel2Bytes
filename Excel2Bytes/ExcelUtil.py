@@ -1,17 +1,18 @@
 import os
 import re
+import shutil
 import struct
 import sys
-from enum import Enum
 
 import numpy as np
 import pandas as pd
 
 from CSScriptBuilder import CSScriptBuilder
 from FileUtil import CopyFile
-from LanguageUtil import GetLanguageKey, TableLanguageCSName
+from LanguageUtil import GetLanguageKey
 from LogUtil import ShowLog
-from PathUtil import ScriptsPath, ScriptsExportPath, BytesPath, BytesExportPath
+from GlobalUtil import ScriptsPath, ScriptsExportPath, BytesPath, BytesExportPath, GenerateScriptType, IgnoreSizeTypes, \
+    TableLanguageCSName
 from ResRefUtil import AddResRef
 
 TAbleRootNamespace = 'ZHRuntime'
@@ -90,21 +91,6 @@ def GetTypeRead(fieldType):
         return 'ReadUInt32'
     elif fieldType == 'ResName':
         return 'ReadString'
-
-
-class GenerateScriptType(Enum):
-    FieldType = 0
-    FindType = 1
-    LNGType = 2
-    CustomTypeField = 3
-    CustomType = 4
-
-
-IgnoreSizeTypes = [
-    GenerateScriptType.FieldType,
-    GenerateScriptType.LNGType,
-    GenerateScriptType.CustomTypeField,
-]
 
 
 def GetFieldName(fieldType, fieldName):
@@ -494,15 +480,7 @@ def CopyBytes():
 
 def DeleteBytes():
     for root, dirs, files in os.walk(BytesPath):
-        for file in files:
-            os.remove(os.path.join(BytesPath, file))
-
-
-def GetScriptsName(excelPath, sheetName, scriptName=None):
-    if scriptName is None:
-        baseName = os.path.basename(excelPath).split(".")[0]
-        if baseName.lower() == sheetName.lower():
-            scriptName = baseName
-        else:
-            scriptName = f'{baseName}{sheetName}'
-    return f'Table{scriptName}'
+        for tFile in files:
+            os.remove(os.path.join(BytesPath, tFile))
+        for tDir in dirs:
+            shutil.rmtree(os.path.join(BytesPath, tDir))

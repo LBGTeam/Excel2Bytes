@@ -1,6 +1,6 @@
 import os
 
-from PathUtil import ScriptsPath
+from GlobalUtil import ScriptsPath
 
 
 class CSScriptBuilder(list):

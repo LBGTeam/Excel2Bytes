@@ -3,13 +3,7 @@ import pandas as pd
 from openpyxl import load_workbook
 
 from LogUtil import ShowLog
-from PathUtil import LanguageXlsxPath
-
-IsUpdateLng = True
-CNLanguage = 'cn'
-LanguageKey = ['tw', 'en']
-LanguageDict = {}
-TableLanguageCSName = 'Language'
+from GlobalUtil import LanguageXlsxPath, CNLanguage, IsUpdateLng, LanguageKey, LanguageDict
 
 
 def InitLanguage():

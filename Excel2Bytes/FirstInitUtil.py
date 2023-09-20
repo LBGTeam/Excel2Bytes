@@ -2,7 +2,7 @@ import os
 
 from CSScriptBuilder import CSScriptBuilder
 from ExcelUtil import TableLoadAssembly
-from PathUtil import ScriptsPath
+from GlobalUtil import ScriptsPath
 
 
 # 首次生成对应的脚本

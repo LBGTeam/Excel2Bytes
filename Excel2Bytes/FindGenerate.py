@@ -3,13 +3,12 @@ import os
 import pandas as pd
 
 from ExcelCShapUtil import FindExcelScript
-from ExcelUtil import TurnBytesByExcel, IsNeedRecordSize, GenerateScriptType, GetScriptsName
+from ExcelUtil import TurnBytesByExcel
 from LogUtil import ShowLog
-from PathUtil import BytesPath
+from GlobalUtil import BytesPath, GenerateScriptType
 
 
-def GenerateFindBytes(excelPath, sheetName, scriptName=None):
-    scriptName = GetScriptsName(excelPath, sheetName, scriptName)
+def GenerateFindBytes(excelPath, sheetName, scriptName):
     excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
     data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.FindType)
     # 获取第一行包含'c'的列
