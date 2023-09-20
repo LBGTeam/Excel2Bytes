@@ -1,7 +1,7 @@
 import os
 
 from FindGenerate import GenerateFindBytes
-from ExcelUtil import CopyScripts, CopyBytes
+from ExcelUtil import CopyScripts, CopyBytes, DeleteScripts, DeleteBytes
 from FieldGenerate import GenerateFieldBytes, GenerateLNGBytes, GenerateFindFieldBytes
 from LanguageUtil import InitLanguage, SaveLanguage, TableLanguageCSName
 from PathUtil import InitFileDir, TablePath
@@ -13,6 +13,11 @@ def InitTable():
     InitLanguage()
 
 
+def DeleteFile():
+    DeleteScripts()
+    DeleteBytes()
+
+
 def CopyExportFiles():
     CopyScripts()
     CopyBytes()
@@ -20,11 +25,12 @@ def CopyExportFiles():
 
 if __name__ == '__main__':
     InitTable()
-    GenerateFieldBytes(os.path.join(TablePath, 'Text.xlsx'), "System")
-    GenerateFieldBytes(os.path.join(TablePath, 'ResName.xlsx'), "ResName", "ResName2")
-    GenerateFieldBytes(os.path.join(TablePath, 'ResName.xlsx'), "ArrayResName")
+    DeleteFile()
+    # GenerateFieldBytes(os.path.join(TablePath, 'Text.xlsx'), "System")
+    # GenerateFieldBytes(os.path.join(TablePath, 'ResName.xlsx'), "ResName", "ResName2")
+    # GenerateFieldBytes(os.path.join(TablePath, 'ResName.xlsx'), "ArrayResName")
     GenerateFindFieldBytes(os.path.join(TablePath, 'Global.xlsx'), "Global", "Global2")
-    GenerateFindBytes(os.path.join(TablePath, 'Level.xlsx'), "Level", "Level2")
+    # GenerateFindBytes(os.path.join(TablePath, 'Level.xlsx'), "Level", "Level2")
     # GenerateFieldBytes(os.path.join(TablePath, 'Text.xlsx'), "SystemArray")
     GenerateLNGBytes(TableLanguageCSName)
     SaveLanguage()

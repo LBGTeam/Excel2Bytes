@@ -149,24 +149,28 @@ def GetDataProperty(fieldType, fieldName, script):
 
 def GetDataAssignment(fieldType, fieldName, script):
     if '[][]' in fieldType:
+        singleType = fieldType[:-4]
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
         script.AppendLine(f'var {fieldName}Row = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Row][];")
+        script.BeginFor(f"var {fieldName}RowIndex = 0; {fieldName}RowIndex < {fieldName}Row; {fieldName}RowIndex++")
         script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Row][];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Row; {fieldName}Index++")
-        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Col];")
-        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Col; {fieldName}Index2++")
-        GetDataAssignment(fieldType[:-2], f"{fieldName}[{fieldName}Index][{fieldName}Index2]", script)
+        script.AppendLine(f"{fieldName}[{fieldName}RowIndex] = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Col];")
+        script.BeginFor(f"var {fieldName}ColIndex = 0; {fieldName}ColIndex < {fieldName}Col; {fieldName}ColIndex++")
+        GetDataAssignment(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script)
+        script.EndFor()
         script.EndFor()
     elif 'double_slc' in fieldType.lower():
+        singleType = fieldType.replace('double_slc|', '')
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
         script.AppendLine(f'var {fieldName}Row = reader.ReadUInt16();')
+        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Row][];")
+        script.BeginFor(f"var {fieldName}RowIndex = 0; {fieldName}RowIndex < {fieldName}Row; {fieldName}RowIndex++")
         script.AppendLine(f'var {fieldName}Col = reader.ReadUInt16();')
-        script.AppendLine(f"{fieldName} = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Row][];")
-        script.BeginFor(f"var {fieldName}Index = 0; {fieldName}Index < {fieldName}Row; {fieldName}Index++")
-        script.AppendLine(f"{fieldName}[{fieldName}Index] = new {GetCShapeType(fieldType)[:-2]}[{fieldName}Col];")
-        script.BeginFor(f"var {fieldName}Index2 = 0; {fieldName}Index2 < {fieldName}Col; {fieldName}Index2++")
-        GetDataAssignment(fieldType.replace('double_slc|', '')[:-2], f"{fieldName}[{fieldName}Index][{fieldName}Index2]", script)
+        script.AppendLine(f"{fieldName}[{fieldName}RowIndex] = new {GetCShapeType(fieldType)[:-4]}[{fieldName}Col];")
+        script.BeginFor(f"var {fieldName}ColIndex = 0; {fieldName}ColIndex < {fieldName}Col; {fieldName}ColIndex++")
+        GetDataAssignment(singleType, f"{fieldName}[{fieldName}RowIndex][{fieldName}ColIndex]", script)
+        script.EndFor()
         script.EndFor()
     elif '[]' in fieldType:
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
@@ -316,7 +320,29 @@ def IsNeedRecordSize(excelData):
 # 将Excel数据转换为二进制
 def TurnBytes(fieldType, fieldValue):
     if '[][]' in fieldType:
-        singleType = fieldType[:-2]
+        singleType = fieldType[:-4]
+        pSize = 0
+        pByte = b''
+        maxRow = 0
+        for singleValue in fieldValue.split('|'):
+            qSize = 0
+            qByte = b''
+            maxRow += 1
+            maxCol = len(singleValue.split(':'))
+            for value in singleValue.split(':'):
+                sByte, sSize = SingleTurnBytes(singleType, value)
+                qByte += sByte
+                qSize += sSize
+            print(qSize, maxCol)
+            pByte += struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + qByte
+            pSize += (typeMap[SizeMap][1] * 2) + qSize
+        print(pSize, maxRow)
+        byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
+                + pByte)
+        pSize += (typeMap[SizeMap][1] * 2)
+        return byte, pSize
+    if 'double_slc' in fieldType.lower():
+        singleType = fieldType.replace('double_slc|', '')
         pSize = 0
         pByte = b''
         maxRow = 0
@@ -325,16 +351,16 @@ def TurnBytes(fieldType, fieldValue):
             qSize = 0
             qByte = b''
             maxRow += 1
-            maxCol = np.max(maxCol, len(singleValue.split(':')))
+            maxCol = max(maxCol, len(singleValue.split(':')))
             for value in singleValue.split(':'):
                 sByte, sSize = SingleTurnBytes(singleType, value)
                 qByte += sByte
                 qSize += sSize
-            pByte += struct.pack(f"{typeMap[SizeMap][0]}", qSize) + qByte
-            pSize += typeMap[SizeMap][1] + qSize
+            pByte += struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + qByte
+            pSize += (typeMap[SizeMap][1] * 2) + qSize
         byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
-                + struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + pByte)
-        pSize += (typeMap[SizeMap][1] * 3)
+                + pByte)
+        pSize += (typeMap[SizeMap][1] * 2)
         return byte, pSize
     if '[]' in fieldType:
         singleType = fieldType[:-2]
@@ -399,27 +425,6 @@ def TurnBytes(fieldType, fieldValue):
         byte = struct.pack(f"{typeMap[SizeMap][0]}", size) + tByte
         size += typeMap[SizeMap][1]
         return byte, size
-    if 'double_slc' in fieldType.lower():
-        singleType = fieldType.replace('double_slc|', '')
-        pSize = 0
-        pByte = b''
-        maxRow = 0
-        maxCol = 0
-        for singleValue in fieldValue.split('|'):
-            qSize = 0
-            qByte = b''
-            maxRow += 1
-            maxCol = np.max(maxCol, len(singleValue.split(':')))
-            for value in singleValue.split(':'):
-                sByte, sSize = SingleTurnBytes(singleType, value)
-                qByte += sByte
-                qSize += sSize
-            pByte += struct.pack(f"{typeMap[SizeMap][0]}", qSize) + qByte
-            pSize += typeMap[SizeMap][1] + qSize
-        byte = (struct.pack(f"{typeMap[SizeMap][0]}", pSize) + struct.pack(f"{typeMap[SizeMap][0]}", maxRow)
-                + struct.pack(f"{typeMap[SizeMap][0]}", maxCol) + pByte)
-        pSize += (typeMap[SizeMap][1] * 3)
-        return byte, pSize
     else:
         return SingleTurnBytes(fieldType, fieldValue)
 
@@ -470,10 +475,22 @@ def CopyScripts():
             CopyFile(os.path.join(ScriptsPath, file), os.path.join(ScriptsExportPath, file))
 
 
+def DeleteScripts():
+    for root, dirs, files in os.walk(ScriptsPath):
+        for file in files:
+            os.remove(os.path.join(ScriptsPath, file))
+
+
 def CopyBytes():
     for root, dirs, files in os.walk(BytesPath):
         for file in files:
             CopyFile(os.path.join(BytesPath, file), os.path.join(BytesExportPath, file))
+
+
+def DeleteBytes():
+    for root, dirs, files in os.walk(BytesPath):
+        for file in files:
+            os.remove(os.path.join(BytesPath, file))
 
 
 def GetScriptsName(excelPath, sheetName, scriptName=None):
