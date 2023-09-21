@@ -8,7 +8,7 @@ from LogUtil import ShowLog
 from GlobalUtil import BytesPath, GenerateScriptType
 
 
-def GenerateFindBytes(excelPath, sheetName, scriptName):
+def GenerateFindBytes(excelPath, sheetName, scriptName, extraNamespace):
     excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
     data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.FindType)
     # 获取第一行包含'c'的列
@@ -17,7 +17,7 @@ def GenerateFindBytes(excelPath, sheetName, scriptName):
     for index, col in enumerate(filteredColumns):
         kv = [excelData.iloc[1, col], excelData.iloc[2, col]]
         pair.append(kv)
-    FindExcelScript(scriptName, pair, scriptName.lower())
+    FindExcelScript(scriptName, pair, scriptName.lower(), extraNamespace)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(BytesPath, f'{scriptName.lower()}.bytes')
     with open(bytesPath, 'wb') as f:

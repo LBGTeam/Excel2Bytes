@@ -3,14 +3,21 @@ from GlobalUtil import TableResLoadAssembly, TableLoadAssembly, TableStructAssem
 from ExcelUtil import GetCShapeType, OfferMap, SizeMap, typeMap, GetDataProperty, GetTypeRead, GetDataAssignment
 
 
-def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder):
+def AddNameSpace(scripts, extraNamespace):
+    scripts.AppendUsing('System.Collections.Generic')
+    scripts.AppendUsing('System.IO')
+    scripts.AppendUsing('System.Text')
+    for ns in extraNamespace.split(';'):
+        if not ns.isspace() and len(ns) > 0 and ns != ' ':
+            scripts.AppendUsing(ns)
+    scripts.AppendUsing(TableResLoadAssembly)
+    scripts.AppendUsing(TableLoadAssembly)
+
+
+def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder, extraNamespace):
     # 将数据转换为二进制
     Scripts = CSScriptBuilder()
-    Scripts.AppendUsing('System.Collections.Generic')
-    Scripts.AppendUsing('System.IO')
-    Scripts.AppendUsing('System.Text')
-    Scripts.AppendUsing(TableResLoadAssembly)
-    Scripts.AppendUsing(TableLoadAssembly)
+    AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
     Scripts.BeginNamespace(TableStructAssembly)
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
@@ -53,15 +60,10 @@ def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder):
     Scripts.GenerateScript(scriptName)
 
 
-def LNGExcelScript(scriptName, bytesName):
+def LNGExcelScript(scriptName, bytesName, extraNamespace):
     # 将数据转换为二进制
     Scripts = CSScriptBuilder()
-    Scripts.AppendUsing('System')
-    Scripts.AppendUsing('System.Collections.Generic')
-    Scripts.AppendUsing('System.IO')
-    Scripts.AppendUsing('System.Text')
-    Scripts.AppendUsing(TableResLoadAssembly)
-    Scripts.AppendUsing(TableLoadAssembly)
+    AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
     Scripts.BeginNamespace(TableStructAssembly)
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
@@ -132,15 +134,10 @@ def LNGExcelScript(scriptName, bytesName):
     Scripts.GenerateScript(scriptName)
 
 
-def FindExcelScript(scriptName, pair, bytesName):
+def FindExcelScript(scriptName, pair, bytesName, extraNamespace):
     # 将数据转换为二进制
     Scripts = CSScriptBuilder()
-    Scripts.AppendUsing('System')
-    Scripts.AppendUsing('System.Collections.Generic')
-    Scripts.AppendUsing('System.IO')
-    Scripts.AppendUsing('System.Text')
-    Scripts.AppendUsing(TableResLoadAssembly)
-    Scripts.AppendUsing(TableLoadAssembly)
+    AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
     Scripts.BeginNamespace(TableStructAssembly)
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
@@ -209,14 +206,10 @@ def FindExcelScript(scriptName, pair, bytesName):
     Scripts.GenerateScript(scriptName)
 
 
-def CustomFieldExcelScript(scriptName, bytesName, scriptBuilder):
+def CustomFieldExcelScript(scriptName, bytesName, scriptBuilder, extraNamespace):
     # 将数据转换为二进制
     Scripts = CSScriptBuilder()
-    Scripts.AppendUsing('System.Collections.Generic')
-    Scripts.AppendUsing('System.IO')
-    Scripts.AppendUsing('System.Text')
-    Scripts.AppendUsing(TableResLoadAssembly)
-    Scripts.AppendUsing(TableLoadAssembly)
+    AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
     Scripts.BeginNamespace(TableStructAssembly)
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')

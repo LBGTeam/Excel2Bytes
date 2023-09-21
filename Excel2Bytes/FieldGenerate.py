@@ -12,7 +12,7 @@ from GlobalUtil import BytesPath, LanguageXlsxPath, GenerateScriptType, LNGBytes
 
 
 # 生成单个字段的二进制文件
-def GenerateFieldBytes(excelPath, sheetName, scriptName):
+def GenerateFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
     excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
     firstRow = excelData.iloc[0]
     columns_with_c = np.where(firstRow.str.contains('c', case=False))[0]
@@ -20,7 +20,7 @@ def GenerateFieldBytes(excelPath, sheetName, scriptName):
     secValueOldType = str(excelData.iloc[2, secondIndex])
     Scripts = CSScriptBuilder()
     data_bytes = TurnBytesByExcel(excelData, 4, 1, GenerateScriptType.FieldType, Scripts)
-    FieldExcelScript(scriptName, secValueOldType, scriptName.lower(), Scripts)
+    FieldExcelScript(scriptName, secValueOldType, scriptName.lower(), Scripts, extraNamespace)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(BytesPath, f'{scriptName.lower()}.bytes')
     with open(bytesPath, 'wb') as f:
@@ -29,11 +29,11 @@ def GenerateFieldBytes(excelPath, sheetName, scriptName):
 
 
 # 生成单个字段的二进制文件
-def GenerateFindFieldBytes(excelPath, sheetName, scriptName):
+def GenerateFindFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
     excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
     Scripts = CSScriptBuilder()
     data_bytes = TurnBytesByExcel(excelData, 2, 2, GenerateScriptType.CustomTypeField, Scripts)
-    CustomFieldExcelScript(scriptName, scriptName.lower(), Scripts)
+    CustomFieldExcelScript(scriptName, scriptName.lower(), Scripts, extraNamespace)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(BytesPath, f'{scriptName.lower()}.bytes')
     with open(bytesPath, 'wb') as f:
@@ -41,11 +41,11 @@ def GenerateFindFieldBytes(excelPath, sheetName, scriptName):
     ShowLog(f'生成二进制文件: {bytesPath}')
 
 
-def GenerateLNGBytes(sheetName, scriptName):
+def GenerateLNGBytes(sheetName, scriptName, extraNamespace):
     excelData = pd.read_excel(LanguageXlsxPath, sheet_name=sheetName, header=None)
     data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)
     if CNLanguage == sheetName:
-        LNGExcelScript(scriptName, scriptName.lower())
+        LNGExcelScript(scriptName, scriptName.lower(), extraNamespace)
     # 将bytes保存到本地文件
     LNGPath = os.path.join(LNGBytesPath, sheetName)
     if not os.path.exists(LNGPath):
