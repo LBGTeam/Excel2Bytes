@@ -1,5 +1,6 @@
 import os
 
+from FirstInitUtil import FirstGenerateData
 from FindGenerate import GenerateFindBytes
 from JsonUtil import InitTableJsonData, LoadTableJsonData
 from ExcelUtil import CopyScripts, CopyBytes, DeleteScripts, DeleteBytes
@@ -51,8 +52,7 @@ def ExportData(tableConfig, isUpdateAllLNG=False, isDeleteFile=False):
                               sheetItem[1]['ScriptsName'], sheetItem[1]['ExtraNamespace'])
     SaveLanguage()
     SaveResList()
-    # CopyExportFiles()
-    # CreateTableManagerCs()
+    CopyExportFiles()
 
 
 def ExportAllData():
@@ -72,3 +72,9 @@ def ExportExtraLNG():
                 else:
                     config[excelItem[0]][sheetItem[0]] = sheetItem[1]
     ExportData(config, True, False)
+
+
+def FirstExportProject():
+    InitFileDir()
+    InitTableJsonData()
+    FirstGenerateData()

@@ -1,8 +1,5 @@
-import os
-
 from CSScriptBuilder import CSScriptBuilder
-from ExcelUtil import TableLoadAssembly
-from GlobalUtil import ScriptsPath
+from GlobalUtil import TableLoadAssembly, CorePath
 
 
 # 首次生成对应的脚本
@@ -15,6 +12,7 @@ def CreateTableManagerCs():
     script = CSScriptBuilder()
     script.AppendUsing('System.Collections.Generic')
     script.AppendUsing('UnityEngine')
+    script.AppendEmptyLine()
     script.BeginNamespace(TableLoadAssembly)
     script.BeginInterface('ITable', 'public')
     script.AppendInterfaceMethod('Dispose')
@@ -54,4 +52,4 @@ def CreateTableManagerCs():
     script.EndMethod()
     script.EndClass()
     script.EndNamespace()
-    script.GenerateScript(os.path.join(ScriptsPath, 'TableManager'))
+    script.GenerateScript('TableManager', CorePath)

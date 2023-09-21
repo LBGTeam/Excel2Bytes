@@ -182,9 +182,11 @@ class CSScriptBuilder(list):
     def ToString(self):
         return ''.join(self)
 
-    def GenerateScript(self, fileName, isDefPath=True):
+    def GenerateScript(self, fileName, filePath=None):
         fileName = fileName.replace('.cs', '')
-        if isDefPath:
+        if filePath is None:
             fileName = os.path.join(ScriptsPath, fileName)
+        else:
+            fileName = os.path.join(filePath, fileName)
         with open(f'{fileName}.cs', 'w', encoding='utf-8') as f:
             f.write(self.ToString())

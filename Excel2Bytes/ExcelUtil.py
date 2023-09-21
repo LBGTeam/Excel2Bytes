@@ -455,6 +455,8 @@ def GetBaseType(fieldType):
 
 
 def CopyScripts():
+    if ScriptsExportPath.isspace() or len(ScriptsExportPath) == 0 or not os.path.exists(ScriptsExportPath):
+        return
     for root, dirs, files in os.walk(ScriptsPath):
         for file in files:
             CopyFile(os.path.join(ScriptsPath, file), os.path.join(ScriptsExportPath, file))
@@ -467,6 +469,8 @@ def DeleteScripts():
 
 
 def CopyBytes():
+    if BytesExportPath.isspace() or len(BytesExportPath) == 0 or not os.path.exists(BytesExportPath):
+        return
     for root, dirs, files in os.walk(BytesPath):
         for file in files:
             CopyFile(os.path.join(BytesPath, file), os.path.join(BytesExportPath, file))
