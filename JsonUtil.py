@@ -39,7 +39,7 @@ def LoadConfigJsonData():
             "TableResLoadAssembly": "LBUnity",
             "ResLoadScripts": "ResManager.OpenFile({0})",
             "LanguageKey": ["tw", "en"],
-            "SupportExcelFormats": [".xlsx", ".xls"],
+            "SupportExcelFormats": [".xlsx"],
             "TableSheetInfo": {'ScriptsName': '', 'ImportType': GenerateScriptType.NoneType.name, 'ExtraNamespace': ''},
         }
     else:
