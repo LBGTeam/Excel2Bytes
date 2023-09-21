@@ -73,6 +73,9 @@ class ConfigData:
     def TableResLoadAssembly(self, value=None):
         return self.GetOrSetConfigJsonData('TableResLoadAssembly', value)
 
+    def ResLoadScripts(self, value=None):
+        return self.GetOrSetConfigJsonData('ResLoadScripts', value)
+
     def LanguageKey(self, value=None):
         return self.GetOrSetConfigJsonData('LanguageKey', value)
 
