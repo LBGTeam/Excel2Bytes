@@ -38,24 +38,27 @@ def GenerateBytes(scriptType, excelPath, sheetName, scriptName, extraNamespace):
         GenerateNoExportLNGBytes(excelPath, sheetName)
 
 
-def ExportData(config, isUpdateAllLNG=False, isDeleteFile=False):
+def ExportData(isUpdateAllLNG=False, isDeleteFile=False, tableNames=None):
     IsUpdateAllLNG = isUpdateAllLNG
     InitTable()
     if isDeleteFile:
         DeleteFile()
-    for excelItem in config.items():
-        for sheetItem in excelItem[1].items():
-            if (IsUpdateAllLNG or sheetItem[1]['ImportType'] != GenerateScriptType.LNGType.name
-                    or sheetItem[0] == Config.CNLanguage()):
-                GenerateBytes(sheetItem[1]['ImportType'], os.path.join(Config.TablePath(), excelItem[0]), sheetItem[0],
-                              sheetItem[1]['ScriptsName'], sheetItem[1]['ExtraNamespace'])
+    if tableNames is not None:
+        tableNames.append(os.path.basename(Config.LanguageXlsxPath()))
+    for excelItem in TableConfig.items():
+        if tableNames is None or excelItem[0] in tableNames:
+            for sheetItem in excelItem[1].items():
+                if (IsUpdateAllLNG or sheetItem[1]['ImportType'] != GenerateScriptType.LNGType.name
+                        or sheetItem[0] == Config.CNLanguage()):
+                    GenerateBytes(sheetItem[1]['ImportType'], os.path.join(Config.TablePath(), excelItem[0]), sheetItem[0],
+                                  sheetItem[1]['ScriptsName'], sheetItem[1]['ExtraNamespace'])
     SaveLanguage()
     SaveResList()
     CopyExportFiles()
 
 
 def ExportAllData():
-    ExportData(TableConfig, True, True)
+    ExportData(True, True)
 
 
 def ExportExtraLNG():
@@ -68,7 +71,7 @@ def ExportExtraLNG():
                     config[excelItem[0]] = {sheetItem[0]: sheetItem[1]}
                 else:
                     config[excelItem[0]][sheetItem[0]] = sheetItem[1]
-    ExportData(TableConfig, True, False)
+    ExportData(True, False)
 
 
 def FirstExportProject():

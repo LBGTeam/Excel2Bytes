@@ -9,7 +9,8 @@ if __name__ == '__main__':
         elif sys.argv[1] == '-e':
             ExportExtraLNG()
         elif sys.argv[1] == '-c':
-            cof = sys.argv[2]
-            ExportData(cof, False, False)
+            tableNames = sys.argv[2]
+            ExportData(False, False, tableNames)
     else:
-        FirstExportProject()
+        # FirstExportProject()
+        ExportAllData()
