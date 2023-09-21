@@ -38,12 +38,12 @@ def GenerateBytes(scriptType, excelPath, sheetName, scriptName, extraNamespace):
         GenerateNoExportLNGBytes(excelPath, sheetName)
 
 
-def ExportData(isUpdateAllLNG=False, isDeleteFile=False):
+def ExportData(config, isUpdateAllLNG=False, isDeleteFile=False):
     IsUpdateAllLNG = isUpdateAllLNG
     InitTable()
     if isDeleteFile:
         DeleteFile()
-    for excelItem in TableConfig.items():
+    for excelItem in config.items():
         for sheetItem in excelItem[1].items():
             if (IsUpdateAllLNG or sheetItem[1]['ImportType'] != GenerateScriptType.LNGType.name
                     or sheetItem[0] == Config.CNLanguage()):
@@ -55,7 +55,7 @@ def ExportData(isUpdateAllLNG=False, isDeleteFile=False):
 
 
 def ExportAllData():
-    ExportData(True, True)
+    ExportData(TableConfig, True, True)
 
 
 def ExportExtraLNG():
@@ -68,7 +68,7 @@ def ExportExtraLNG():
                     config[excelItem[0]] = {sheetItem[0]: sheetItem[1]}
                 else:
                     config[excelItem[0]][sheetItem[0]] = sheetItem[1]
-    ExportData(True, False)
+    ExportData(TableConfig, True, False)
 
 
 def FirstExportProject():
