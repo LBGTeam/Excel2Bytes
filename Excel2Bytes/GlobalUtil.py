@@ -29,7 +29,7 @@ ScriptsExportPath = 'E:\GitPrograme\TW\client\client\Assets\_Scripts\Table\Struc
 SupportExcelFormats = ['.xlsx', '.xls']
 TableSheetInfo = {'ScriptsName': '', 'ImportType': GenerateScriptType.NoneType.name, 'ExtraNamespace': ''}
 
-IsUpdateLng = True
+IsUpdateAllLNG = True
 CNLanguage = 'cn'
 LanguageKey = ['tw', 'en']
 LanguageDict = {}

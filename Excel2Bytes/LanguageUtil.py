@@ -3,7 +3,7 @@ import pandas as pd
 from openpyxl import load_workbook
 
 from LogUtil import ShowLog
-from GlobalUtil import LanguageXlsxPath, CNLanguage, IsUpdateLng, LanguageKey, LanguageDict
+from GlobalUtil import LanguageXlsxPath, CNLanguage, IsUpdateAllLNG, LanguageKey, LanguageDict
 
 
 def InitLanguage():
@@ -12,7 +12,7 @@ def InitLanguage():
             CNLanguage not in pd.read_excel(LanguageXlsxPath, sheet_name=None).keys()):
         SaveLangData(CNLanguage, {'c': 'c', 'ID': 'text', 'uint': 'string', '编号': '文本'})
     ReadLangData(CNLanguage)
-    if IsUpdateLng:
+    if IsUpdateAllLNG:
         for key in LanguageKey:
             ReadLangData(key)
 
@@ -20,7 +20,7 @@ def InitLanguage():
 def SaveLanguage():
     ShowLog('保存语言表')
     SaveLangData(CNLanguage, LanguageDict[CNLanguage])
-    if IsUpdateLng:
+    if IsUpdateAllLNG:
         languageDict = {CNLanguage: {}}
         for key, value in LanguageDict[CNLanguage].items():
             languageDict[CNLanguage][key] = value
@@ -79,7 +79,7 @@ def GetLanguageKey(value):
         maxKey = max(LanguageDict[CNLanguage].keys())
         newKey = maxKey + 1
         LanguageDict[CNLanguage][newKey] = value
-        if IsUpdateLng:
+        if IsUpdateAllLNG:
             for key in LanguageKey:
                 LanguageDict[key][newKey] = value
         return newKey
