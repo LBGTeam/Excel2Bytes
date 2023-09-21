@@ -5,7 +5,8 @@ import pandas as pd
 from ExcelCShapUtil import FindExcelScript
 from ExcelUtil import TurnBytesByExcel
 from LogUtil import ShowLog
-from GlobalUtil import BytesPath, GenerateScriptType
+from GlobalUtil import GenerateScriptType
+from ConfigData import Config
 
 
 def GenerateFindBytes(excelPath, sheetName, scriptName, extraNamespace):
@@ -19,7 +20,7 @@ def GenerateFindBytes(excelPath, sheetName, scriptName, extraNamespace):
         pair.append(kv)
     FindExcelScript(scriptName, pair, scriptName.lower(), extraNamespace)
     # 将bytes保存到本地文件
-    bytesPath = os.path.join(BytesPath, f'{scriptName.lower()}.bytes')
+    bytesPath = os.path.join(Config.BytesPath(), f'{scriptName.lower()}.bytes')
     with open(bytesPath, 'wb') as f:
         f.write(data_bytes)
     ShowLog(f'生成二进制文件: {bytesPath}')

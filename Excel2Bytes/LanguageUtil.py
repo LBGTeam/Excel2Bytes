@@ -1,9 +1,9 @@
 import os
 import pandas as pd
-from openpyxl import load_workbook
+from openpyxl import load_workbook, Workbook
 
 from LogUtil import ShowLog
-from GlobalUtil import LanguageXlsxPath, LanguageDict
+from GlobalUtil import LanguageDict
 from ConfigData import Config
 
 
@@ -12,8 +12,8 @@ def InitLanguage():
     isUpdateAllLNG = Config.IsUpdateAllLNG()
     cnLanguage = Config.CNLanguage()
     languageKey = Config.LanguageKey()
-    if (not os.path.exists(LanguageXlsxPath) or
-            cnLanguage not in pd.read_excel(LanguageXlsxPath, sheet_name=None).keys()):
+    if (not os.path.exists(Config.LanguageXlsxPath()) or
+            cnLanguage not in pd.ExcelFile(Config.LanguageXlsxPath()).sheet_names):
         SaveLangData(cnLanguage, {'c': 'c', 'ID': 'text', 'uint': 'string', '编号': '文本'})
     ReadLangData(cnLanguage)
     if isUpdateAllLNG:
@@ -29,13 +29,14 @@ def SaveLanguage():
     SaveLangData(cnLanguage, LanguageDict[cnLanguage])
     if isUpdateAllLNG:
         languageDict = {cnLanguage: {}}
+        for keyLng in languageKey:
+            if keyLng not in languageDict.keys():
+                languageDict[keyLng] = {}
         for key, value in LanguageDict[cnLanguage].items():
             languageDict[cnLanguage][key] = value
             for keyLng in languageKey:
-                if keyLng not in languageDict.keys():
-                    languageDict[keyLng] = {}
-                if key in LanguageDict[keyLng].keys():
-                    languageDict[keyLng][key] = LanguageDict[keyLng][key]
+                if key in LanguageDict[cnLanguage].keys():
+                    languageDict[keyLng][key] = LanguageDict[cnLanguage][key]
                 else:
                     languageDict[keyLng][key] = value
         for keyLng in languageKey:
@@ -45,10 +46,10 @@ def SaveLanguage():
 def ReadLangData(key):
     ShowLog(f'读取语言表数据: {key}')
     # 读取Excel文件
-    df = pd.read_excel(LanguageXlsxPath, sheet_name=None, header=None)
+    df = pd.read_excel(Config.LanguageXlsxPath(), sheet_name=None, header=None)
     # 判断是否包含名为key的页签
     if key in df.keys():
-        df = pd.read_excel(LanguageXlsxPath, sheet_name=key)
+        df = pd.read_excel(Config.LanguageXlsxPath(), sheet_name=key)
         keyLng = {}
         for index, row in df.iloc[3:].iterrows():
             keyLng[row.iloc[0]] = row.iloc[1]
@@ -57,7 +58,11 @@ def ReadLangData(key):
 
 def SaveLangData(key, data):
     ShowLog(f'保存语言表数据: {key}')
-    workbook = load_workbook(filename=LanguageXlsxPath)
+    if not os.path.exists(Config.LanguageXlsxPath()):
+        workbook = Workbook()
+        workbook.active.title = key
+        workbook.save(Config.LanguageXlsxPath())
+    workbook = load_workbook(filename=Config.LanguageXlsxPath())
     if key not in workbook.sheetnames:
         worksheet = workbook.create_sheet(key)
         worksheet.append(['c', 'c'])
@@ -69,7 +74,7 @@ def SaveLangData(key, data):
         worksheet.delete_rows(5, worksheet.max_row)
     for key, value in data.items():
         worksheet.append([key, value])
-    workbook.save(LanguageXlsxPath)
+    workbook.save(Config.LanguageXlsxPath())
 
 
 def GetLanguageKey(value):

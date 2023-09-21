@@ -1,5 +1,4 @@
 from CSScriptBuilder import CSScriptBuilder
-from GlobalUtil import CorePath
 from ConfigData import Config
 
 
@@ -53,4 +52,4 @@ def CreateTableManagerCs():
     script.EndMethod()
     script.EndClass()
     script.EndNamespace()
-    script.GenerateScript('TableManager', CorePath)
+    script.GenerateScript('TableManager', Config.CorePath())

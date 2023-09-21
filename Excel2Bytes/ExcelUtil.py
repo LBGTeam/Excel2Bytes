@@ -11,7 +11,7 @@ from CSScriptBuilder import CSScriptBuilder
 from FileUtil import CopyFile
 from LanguageUtil import GetLanguageKey
 from LogUtil import ShowLog
-from GlobalUtil import ScriptsPath, BytesPath, GenerateScriptType, IgnoreSizeTypes, LNGBytesPath
+from GlobalUtil import GenerateScriptType, IgnoreSizeTypes
 from ResRefUtil import AddResRef
 from ConfigData import Config
 
@@ -460,31 +460,31 @@ def CopyScripts():
     scriptsExportPath = Config.ScriptsExportPath()
     if scriptsExportPath.isspace() or len(scriptsExportPath) == 0 or not os.path.exists(scriptsExportPath):
         return
-    for root, dirs, files in os.walk(ScriptsPath):
+    for root, dirs, files in os.walk(Config.ScriptsPath()):
         for file in files:
-            CopyFile(os.path.join(ScriptsPath, file), os.path.join(scriptsExportPath, file))
+            CopyFile(os.path.join(Config.ScriptsPath(), file), os.path.join(scriptsExportPath, file))
 
 
 def DeleteScripts():
-    for root, dirs, files in os.walk(ScriptsPath):
+    for root, dirs, files in os.walk(Config.ScriptsPath()):
         for file in files:
-            os.remove(os.path.join(ScriptsPath, file))
+            os.remove(os.path.join(Config.ScriptsPath(), file))
 
 
 def CopyBytes():
     bytesExportPath = Config.BytesExportPath()
     if bytesExportPath.isspace() or len(bytesExportPath) == 0 or not os.path.exists(bytesExportPath):
         return
-    for root, dirs, files in os.walk(BytesPath):
+    for root, dirs, files in os.walk(Config.BytesPath()):
         for file in files:
-            CopyFile(os.path.join(BytesPath, file), os.path.join(bytesExportPath, file))
+            CopyFile(os.path.join(Config.BytesPath(), file), os.path.join(bytesExportPath, file))
         for tDir in dirs:
-            shutil.copytree(os.path.join(LNGBytesPath, tDir), os.path.join(bytesExportPath, tDir))
+            shutil.copytree(os.path.join(Config.BytesPath(), tDir), os.path.join(bytesExportPath, tDir))
 
 
 def DeleteBytes():
-    for root, dirs, files in os.walk(BytesPath):
+    for root, dirs, files in os.walk(Config.BytesPath()):
         for tFile in files:
-            os.remove(os.path.join(BytesPath, tFile))
+            os.remove(os.path.join(Config.BytesPath(), tFile))
         for tDir in dirs:
-            shutil.rmtree(os.path.join(BytesPath, tDir))
+            shutil.rmtree(os.path.join(Config.BytesPath(), tDir))

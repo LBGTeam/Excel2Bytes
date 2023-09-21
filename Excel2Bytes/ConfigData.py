@@ -2,8 +2,8 @@ import os
 
 import pandas as pd
 
-from GlobalUtil import ConfigJsonPath, GetScriptsName, TablePath, TableConfigJsonPath
-from JsonUtil import LoadConfigJsonData, SaveJsonData, LoadTableJsonData, SaveTableJsonData
+from GlobalUtil import ConfigJsonPath, GetScriptsName, TableConfigJsonPath
+from JsonUtil import LoadConfigJsonData, SaveJsonData, LoadTableJsonData
 
 
 class ConfigData:
@@ -21,6 +21,27 @@ class ConfigData:
 
     def IsUpdateAllLNG(self, value=None):
         return self.GetOrSetConfigJsonData('IsUpdateAllLNG', value)
+
+    def TablePath(self, value=None):
+        return self.GetOrSetConfigJsonData('TablePath', value)
+
+    def BytesPath(self, value=None):
+        return self.GetOrSetConfigJsonData('BytesPath', value)
+
+    def ScriptsPath(self, value=None):
+        return self.GetOrSetConfigJsonData('ScriptsPath', value)
+
+    def CorePath(self, value=None):
+        return self.GetOrSetConfigJsonData('CorePath', value)
+
+    def LNGBytesPath(self, value=None):
+        return self.GetOrSetConfigJsonData('LNGBytesPath', value)
+
+    def ResRefFileListPath(self, value=None):
+        return self.GetOrSetConfigJsonData('ResRefFileListPath', value)
+
+    def LanguageXlsxPath(self, value=None):
+        return self.GetOrSetConfigJsonData('LanguageXlsxPath', value)
 
     def CNLanguage(self, value=None):
         return self.GetOrSetConfigJsonData('CNLanguage', value)
@@ -62,14 +83,17 @@ class ConfigData:
         return self.GetOrSetConfigJsonData('TableSheetInfo', value)
 
 
+Config = ConfigData()
+
+
 class TableConfigData:
     tableConfig = LoadTableJsonData()
 
     def InitTableJsonData(self):
-        fileLists = os.listdir(TablePath)
+        fileLists = os.listdir(Config.TablePath())
         for fileName in fileLists:
             if any([fileName.endswith(ext) for ext in Config.SupportExcelFormats()]):
-                filePath = os.path.join(TablePath, fileName)
+                filePath = os.path.join(Config.TablePath(), fileName)
                 workbook = pd.ExcelFile(filePath)
                 for sheetName in workbook.sheet_names:
                     for info in Config.TableSheetInfo().keys():
@@ -113,5 +137,4 @@ class TableConfigData:
         return self.tableConfig.items()
 
 
-Config = ConfigData()
 TableConfig = TableConfigData()

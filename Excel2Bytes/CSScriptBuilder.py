@@ -1,6 +1,6 @@
 import os
 
-from GlobalUtil import ScriptsPath
+from ConfigData import Config
 
 
 class CSScriptBuilder(list):
@@ -185,7 +185,7 @@ class CSScriptBuilder(list):
     def GenerateScript(self, fileName, filePath=None):
         fileName = fileName.replace('.cs', '')
         if filePath is None:
-            fileName = os.path.join(ScriptsPath, fileName)
+            fileName = os.path.join(Config.ScriptsPath(), fileName)
         else:
             fileName = os.path.join(filePath, fileName)
         with open(f'{fileName}.cs', 'w', encoding='utf-8') as f:

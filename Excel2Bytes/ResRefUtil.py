@@ -1,6 +1,6 @@
 import json
 
-from GlobalUtil import ResRefFileListPath
+from ConfigData import Config
 
 ResList = []
 
@@ -11,5 +11,5 @@ def AddResRef(resName):
 
 
 def SaveResList():
-    with open(ResRefFileListPath, 'w') as f:
+    with open(Config.ResRefFileListPath(), 'w') as f:
         json.dump(ResList, f, indent=4, ensure_ascii=False)

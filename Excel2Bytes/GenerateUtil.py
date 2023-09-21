@@ -5,13 +5,12 @@ from FindGenerate import GenerateFindBytes
 from ExcelUtil import CopyScripts, CopyBytes, DeleteScripts, DeleteBytes
 from FieldGenerate import GenerateFieldBytes, GenerateLNGBytes, GenerateFindFieldBytes, GenerateNoExportLNGBytes
 from LanguageUtil import InitLanguage, SaveLanguage
-from GlobalUtil import InitFileDir, TablePath, GenerateScriptType
+from GlobalUtil import GenerateScriptType
 from ResRefUtil import SaveResList
 from ConfigData import Config, TableConfig
 
 
 def InitTable():
-    InitFileDir()
     InitLanguage()
     TableConfig.InitTableJsonData()
 
@@ -48,7 +47,7 @@ def ExportData(isUpdateAllLNG=False, isDeleteFile=False):
         for sheetItem in excelItem[1].items():
             if (IsUpdateAllLNG or sheetItem[1]['ImportType'] != GenerateScriptType.LNGType.name
                     or sheetItem[0] == Config.CNLanguage()):
-                GenerateBytes(sheetItem[1]['ImportType'], os.path.join(TablePath, excelItem[0]), sheetItem[0],
+                GenerateBytes(sheetItem[1]['ImportType'], os.path.join(Config.TablePath(), excelItem[0]), sheetItem[0],
                               sheetItem[1]['ScriptsName'], sheetItem[1]['ExtraNamespace'])
     SaveLanguage()
     SaveResList()
@@ -73,6 +72,5 @@ def ExportExtraLNG():
 
 
 def FirstExportProject():
-    InitFileDir()
     TableConfig.InitTableJsonData()
     FirstGenerateData()

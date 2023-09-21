@@ -1,7 +1,8 @@
 import json
 import os
 
-from GlobalUtil import TableConfigJsonPath, ConfigJsonPath, GenerateScriptType
+from LogUtil import ShowLog
+from GlobalUtil import TableConfigJsonPath, ConfigJsonPath, GenerateScriptType, SavePath, InitFileDir
 
 
 def LoadJsonData(filePath):
@@ -22,6 +23,13 @@ def LoadConfigJsonData():
     if not os.path.exists(ConfigJsonPath):
         config = {
             "IsUpdateAllLNG": True,
+            "TablePath": os.path.join(SavePath, 'Table'),
+            "BytesPath": os.path.join(SavePath, 'Bytes'),
+            "ScriptsPath": os.path.join(SavePath, 'Scripts'),
+            "CorePath": os.path.join(SavePath, 'Core'),
+            "LNGBytesPath": os.path.join(SavePath, 'Bytes'),
+            "ResRefFileListPath": os.path.join(SavePath, 'reslist.json'),
+            "LanguageXlsxPath": os.path.join(SavePath, 'Table', 'Languages.xlsx'),
             "CNLanguage": "cn",
             "TableLanguageCSName": "Languages",
             "BytesExportPath": "",
@@ -35,6 +43,24 @@ def LoadConfigJsonData():
         }
     else:
         config = LoadJsonData(ConfigJsonPath)
+
+    InitFileDir()
+    if not os.path.exists(config['TablePath']):
+        os.mkdir(config['TablePath'])
+        ShowLog('创建文件夹: Table')
+    if not os.path.exists(config['BytesPath']):
+        os.mkdir(config['BytesPath'])
+        ShowLog('创建文件夹: Bytes')
+    if not os.path.exists(config['ScriptsPath']):
+        os.mkdir(config['ScriptsPath'])
+        ShowLog('创建文件夹: Scripts')
+    if not os.path.exists(config['CorePath']):
+        os.mkdir(config['CorePath'])
+        ShowLog('创建文件夹: Core')
+    if not os.path.exists(config['LNGBytesPath']):
+        os.mkdir(config['LNGBytesPath'])
+        ShowLog('创建文件夹: LNGBytes')
+
     SaveJsonData(ConfigJsonPath, config)
     return config
 
