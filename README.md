@@ -48,25 +48,27 @@ py写的游戏开发用的导表工具。目前支持C#脚本。
 	    }
 	}
 
->**IsUpdateAllLNG**: 表示是否要更新多语言，如果为False，只有中文语言表会更新，其他的语言不会更新  
->**TablePath**：表格存放的目录  
->**BytesPath**：生成的字节文件存放的目录（非项目内路径，后面有项目内的路径配置，会把这里的文件复制到后面配置的项目路径）  
->**ScriptsPath**：生成的脚本文件存放目录（和BytesPath一样是临时存放目录)  
->**CorePath**：核心脚本目录，初次导入的时候会生成TableManager等管理脚本存放目录（也是临时存放目录）  
->**LNGBytesPath**：多语言的字节生成目录，所有的语言生成的字节文件都是一样的名字，会放在与语言页签同样名字的文件夹下，开发者加载的时候处理不同语言访问的字节文件。  
->**ResRefFileListPath**：收集配置的资源名字的json文件路径（里面存放的都是表里配置的资源的名字）  
->**LanguageXlsxPath**：多语言的表格路径，这个是自动生成的。<font color=Red>只有处理其他语言显示文字才会修改这个表，这个表的中文页签是会自动更新的</font>  
->**CNLanguage**：多语言表中文页签的页签名  
->**TableLanguageCSName**：读取语言的脚本名字，这里不需要带前缀"Table"（如上图配置，游戏中访问语言就是：TableLanguages.Find(10)）  
->**BytesExportPath**：项目里表格字节文件存放的路径，工具会把临时存放的字节文件复制到这个文件里  
->**ScriptsExportPath**：项目里表格脚本文件存放的路径，同上  
->**CoreExportPath**：表格核心脚本存放路径，同上  
->**TableRootNamespace**：表格脚本所在的程序集名字（把导表生成的脚本都放在这个程序集下）  
->**TableResLoadAssembly**：脚本加载字节文件的时候需要用到的项目资源加载脚本所在的命名空间  
->**ResLoadScripts**：加载字节文件用到的项目里的方法  
->**LanguageKey**：多语言中其他语言的页签名字  
->**SupportExcelFormats**：表格文件支持的后缀  
->**TableSheetInfo**：页签文件要包含的信息，扩展使用（正常情况下不要修改，增加需要修改代码以作支持）  
+|字段|描述|
+|:--|:--|
+|IsUpdateAllLNG|表示是否要更新多语言，如果为False，只有中文语言表会更新，其他的语言不会更新|
+|TablePath|表格存放的目录|
+|BytesPath|生成的字节文件存放的目录（非项目内路径，后面有项目内的路径配置，会把这里的文件复制到后面配置的项目路径）|
+|ScriptsPath|生成的脚本文件存放目录（和BytesPath一样是临时存放目录)|
+|CorePath|核心脚本目录，初次导入的时候会生成TableManager等管理脚本存放目录（也是临时存放目录）|
+|LNGBytesPath|多语言的字节生成目录，所有的语言生成的字节文件都是一样的名字，会放在与语言页签同样名字的文件夹下，开发者加载的时候处理不同语言访问的字节文件。|
+|ResRefFileListPath|收集配置的资源名字的json文件路径（里面存放的都是表里配置的资源的名字）|
+|LanguageXlsxPath|多语言的表格路径，这个是自动生成的。<font color=Red>只有处理其他语言显示文字才会修改这个表，这个表的中文页签是会自动更新的</font>|
+|CNLanguage|多语言表中文页签的页签名|
+|TableLanguageCSName|读取语言的脚本名字，这里不需要带前缀"Table"（如上图配置，游戏中访问语言就是：TableLanguages.Find(10)）|
+|BytesExportPath|项目里表格字节文件存放的路径，工具会把临时存放的字节文件复制到这个文件里|
+|ScriptsExportPath|项目里表格脚本文件存放的路径，同上|
+|CoreExportPath|表格核心脚本存放路径，同上|
+|TableRootNamespace|表格脚本所在的程序集名字（把导表生成的脚本都放在这个程序集下）|
+|TableResLoadAssembly|脚本加载字节文件的时候需要用到的项目资源加载脚本所在的命名空间|
+|ResLoadScripts|加载字节文件用到的项目里的方法|
+|LanguageKey|多语言中其他语言的页签名字|
+|SupportExcelFormats|表格文件支持的后缀|
+|TableSheetInfo|页签文件要包含的信息，扩展使用（正常情况下不要修改，增加需要修改代码以作支持）|
 
 ## 表格类型
 ### 导入类型  
