@@ -1,6 +1,6 @@
 from CSScriptBuilder import CSScriptBuilder
-from GlobalUtil import TableResLoadAssembly, TableLoadAssembly, TableStructAssembly
 from ExcelUtil import GetCShapeType, OfferMap, SizeMap, typeMap, GetDataProperty, GetTypeRead, GetDataAssignment
+from ConfigData import Config
 
 
 def AddNameSpace(scripts, extraNamespace):
@@ -10,8 +10,8 @@ def AddNameSpace(scripts, extraNamespace):
     for ns in extraNamespace.split(';'):
         if not ns.isspace() and len(ns) > 0 and ns != ' ':
             scripts.AppendUsing(ns)
-    scripts.AppendUsing(TableResLoadAssembly)
-    scripts.AppendUsing(TableLoadAssembly)
+    scripts.AppendUsing(Config.TableResLoadAssembly())
+    scripts.AppendUsing(Config.TableRootNamespace())
 
 
 def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder, extraNamespace):
@@ -19,7 +19,7 @@ def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder, extraNa
     Scripts = CSScriptBuilder()
     AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
-    Scripts.BeginNamespace(TableStructAssembly)
+    Scripts.BeginNamespace(Config.TableStructAssembly())
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
     Scripts.AppendEmptyLine()
     Scripts.AppendLine(f'private static {scriptName} s_Instance;')
@@ -65,7 +65,7 @@ def LNGExcelScript(scriptName, bytesName, extraNamespace):
     Scripts = CSScriptBuilder()
     AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
-    Scripts.BeginNamespace(TableStructAssembly)
+    Scripts.BeginNamespace(Config.TableStructAssembly())
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
     Scripts.AppendEmptyLine()
     Scripts.AppendLine(f'private static {scriptName} s_Instance;')
@@ -139,7 +139,7 @@ def FindExcelScript(scriptName, pair, bytesName, extraNamespace):
     Scripts = CSScriptBuilder()
     AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
-    Scripts.BeginNamespace(TableStructAssembly)
+    Scripts.BeginNamespace(Config.TableStructAssembly())
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
     Scripts.AppendEmptyLine()
     Scripts.BeginClass('Data', 'public sealed')
@@ -211,7 +211,7 @@ def CustomFieldExcelScript(scriptName, bytesName, scriptBuilder, extraNamespace)
     Scripts = CSScriptBuilder()
     AddNameSpace(Scripts, extraNamespace)
     Scripts.AppendEmptyLine()
-    Scripts.BeginNamespace(TableStructAssembly)
+    Scripts.BeginNamespace(Config.TableStructAssembly())
     Scripts.BeginClass(scriptName, 'public sealed', 'ITable')
     Scripts.AppendEmptyLine()
     Scripts.AppendLine(f'private static {scriptName} s_Instance;')

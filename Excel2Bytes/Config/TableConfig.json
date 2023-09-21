@@ -1,0 +1,119 @@
+{
+    "Global.xlsx": {
+        "Global": {
+            "ScriptsName": "TableGlobal",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        }
+    },
+    "Languages.xlsx": {
+        "cn": {
+            "ScriptsName": "TableLanguagescn",
+            "ImportType": "LNGType",
+            "ExtraNamespace": ""
+        },
+        "tw": {
+            "ScriptsName": "TableLanguagestw",
+            "ImportType": "LNGType",
+            "ExtraNamespace": ""
+        },
+        "en": {
+            "ScriptsName": "TableLanguagesen",
+            "ImportType": "LNGType",
+            "ExtraNamespace": ""
+        }
+    },
+    "LanguagesUI.xlsx": {
+        "UI": {
+            "ScriptsName": "TableLanguagesUIUI",
+            "ImportType": "NoExportLNGType",
+            "ExtraNamespace": ""
+        }
+    },
+    "Level.xlsx": {
+        "Level": {
+            "ScriptsName": "TableLevel",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "ExpAcquire": {
+            "ScriptsName": "TableLevelExpAcquire",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "Chase": {
+            "ScriptsName": "TableLevelChase",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "Bless": {
+            "ScriptsName": "TableLevelBless",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "BlessLevel": {
+            "ScriptsName": "TableLevelBlessLevel",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "LevelName": {
+            "ScriptsName": "TableLevelLevelName",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        }
+    },
+    "ResName.xlsx": {
+        "ResName": {
+            "ScriptsName": "TableResName",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "ArrayResName": {
+            "ScriptsName": "TableResNameArrayResName",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        }
+    },
+    "Text.xlsx": {
+        "System": {
+            "ScriptsName": "TableTextSystem",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "Network": {
+            "ScriptsName": "TableTextNetwork",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "SystemFind": {
+            "ScriptsName": "TableTextSystemFind",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "SystemArray": {
+            "ScriptsName": "TableTextSystemArray",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "Rich": {
+            "ScriptsName": "TableTextRich",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "RichArray": {
+            "ScriptsName": "TableTextRichArray",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "FindKey": {
+            "ScriptsName": "TableTextFindKey",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        },
+        "ShieldText": {
+            "ScriptsName": "TableTextShieldText",
+            "ImportType": "NoneType",
+            "ExtraNamespace": ""
+        }
+    }
+}

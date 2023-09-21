@@ -15,33 +15,19 @@ class GenerateScriptType(Enum):
     CustomType = 6
 
 
+ConfigPath = os.path.join(ExePath(), 'Config')
+ConfigJsonPath = os.path.join(ConfigPath, 'Config.json')
+TableConfigJsonPath = os.path.join(ConfigPath, 'TableConfig.json')
 SavePath = os.path.join(ExePath(), 'Save')
 TablePath = os.path.join(SavePath, 'Table')
 BytesPath = os.path.join(SavePath, 'Bytes')
 CorePath = os.path.join(SavePath, 'Core')
 LNGBytesPath = os.path.join(SavePath, 'Bytes')
 ScriptsPath = os.path.join(SavePath, 'Scripts')
-JsonsPath = os.path.join(SavePath, 'Jsons')
 ResRefFileListPath = os.path.join(SavePath, 'reslist.json')
-TableConfigJsonPath = os.path.join(JsonsPath, 'TableConfig.json')
 LanguageXlsxPath = os.path.join(TablePath, 'Languages.xlsx')
-BytesExportPath = ''
-ScriptsExportPath = ''
-CoreExportPath = ''
-SupportExcelFormats = ['.xlsx', '.xls']
-TableSheetInfo = {'ScriptsName': '', 'ImportType': GenerateScriptType.NoneType.name, 'ExtraNamespace': ''}
 
-IsUpdateAllLNG = True
-CNLanguage = 'cn'
-LanguageKey = ['tw', 'en']
 LanguageDict = {}
-TableLanguageCSName = 'Languages'
-
-TAbleRootNamespace = 'LBRuntime'
-TableAssembly = f'{TAbleRootNamespace}.Table'
-TableLoadAssembly = f'{TAbleRootNamespace}.Table.Loader'
-TableStructAssembly = f'{TAbleRootNamespace}.Table.Structure'
-TableResLoadAssembly = 'LBUnity'
 
 
 IgnoreSizeTypes = [
@@ -52,6 +38,9 @@ IgnoreSizeTypes = [
 
 
 def InitFileDir():
+    if not os.path.exists(ConfigPath):
+        os.mkdir(ConfigPath)
+        ShowLog('创建文件夹: Config')
     if not os.path.exists(SavePath):
         os.mkdir(SavePath)
         ShowLog('创建文件夹: Save')
@@ -67,9 +56,6 @@ def InitFileDir():
     if not os.path.exists(CorePath):
         os.mkdir(CorePath)
         ShowLog('创建文件夹: Core')
-    if not os.path.exists(JsonsPath):
-        os.mkdir(JsonsPath)
-        ShowLog('创建文件夹: Jsons')
 
 
 def GetScriptsName(excelPath, sheetName, scriptName=None):

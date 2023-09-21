@@ -2,18 +2,18 @@ import os
 
 from FirstInitUtil import FirstGenerateData
 from FindGenerate import GenerateFindBytes
-from JsonUtil import InitTableJsonData, LoadTableJsonData
 from ExcelUtil import CopyScripts, CopyBytes, DeleteScripts, DeleteBytes
 from FieldGenerate import GenerateFieldBytes, GenerateLNGBytes, GenerateFindFieldBytes, GenerateNoExportLNGBytes
 from LanguageUtil import InitLanguage, SaveLanguage
-from GlobalUtil import InitFileDir, TablePath, GenerateScriptType, IsUpdateAllLNG, CNLanguage
+from GlobalUtil import InitFileDir, TablePath, GenerateScriptType
 from ResRefUtil import SaveResList
+from ConfigData import Config, TableConfig
 
 
 def InitTable():
     InitFileDir()
     InitLanguage()
-    InitTableJsonData()
+    TableConfig.InitTableJsonData()
 
 
 def DeleteFile():
@@ -39,15 +39,15 @@ def GenerateBytes(scriptType, excelPath, sheetName, scriptName, extraNamespace):
         GenerateNoExportLNGBytes(excelPath, sheetName)
 
 
-def ExportData(tableConfig, isUpdateAllLNG=False, isDeleteFile=False):
+def ExportData(isUpdateAllLNG=False, isDeleteFile=False):
     IsUpdateAllLNG = isUpdateAllLNG
     InitTable()
     if isDeleteFile:
         DeleteFile()
-    for excelItem in tableConfig.items():
+    for excelItem in TableConfig.items():
         for sheetItem in excelItem[1].items():
             if (IsUpdateAllLNG or sheetItem[1]['ImportType'] != GenerateScriptType.LNGType.name
-                    or sheetItem[0] == CNLanguage):
+                    or sheetItem[0] == Config.CNLanguage()):
                 GenerateBytes(sheetItem[1]['ImportType'], os.path.join(TablePath, excelItem[0]), sheetItem[0],
                               sheetItem[1]['ScriptsName'], sheetItem[1]['ExtraNamespace'])
     SaveLanguage()
@@ -56,14 +56,12 @@ def ExportData(tableConfig, isUpdateAllLNG=False, isDeleteFile=False):
 
 
 def ExportAllData():
-    tableConfig = LoadTableJsonData()
-    ExportData(tableConfig, True, True)
+    ExportData(True, True)
 
 
 def ExportExtraLNG():
-    tableConfig = LoadTableJsonData()
     config = {}
-    for excelItem in tableConfig.items():
+    for excelItem in TableConfig.items():
         for sheetItem in excelItem[1].items():
             importType = sheetItem[1]['ImportType']
             if importType == GenerateScriptType.NoExportLNGType.name or importType == GenerateScriptType.LNGType.name:
@@ -71,10 +69,10 @@ def ExportExtraLNG():
                     config[excelItem[0]] = {sheetItem[0]: sheetItem[1]}
                 else:
                     config[excelItem[0]][sheetItem[0]] = sheetItem[1]
-    ExportData(config, True, False)
+    ExportData(True, False)
 
 
 def FirstExportProject():
     InitFileDir()
-    InitTableJsonData()
+    TableConfig.InitTableJsonData()
     FirstGenerateData()

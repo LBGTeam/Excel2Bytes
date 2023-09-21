@@ -11,9 +11,9 @@ from CSScriptBuilder import CSScriptBuilder
 from FileUtil import CopyFile
 from LanguageUtil import GetLanguageKey
 from LogUtil import ShowLog
-from GlobalUtil import ScriptsPath, ScriptsExportPath, BytesPath, BytesExportPath, GenerateScriptType, IgnoreSizeTypes, \
-    TableLanguageCSName, LNGBytesPath
+from GlobalUtil import ScriptsPath, BytesPath, GenerateScriptType, IgnoreSizeTypes, LNGBytesPath
 from ResRefUtil import AddResRef
+from ConfigData import Config
 
 SizeMap = 'ushort'
 OfferMap = 'ulong'
@@ -126,8 +126,9 @@ def GetCShapeType(fieldType, isBase=False):
 def GetDataProperty(fieldType, fieldName, script):
     valueType = GetCShapeType(fieldType)
     if 'LNGRef' in fieldType:
+        tableLanguageCSName = Config.TableLanguageCSName()
         script.AppendLine(f"private uint {GetFieldName(fieldType, fieldName)};")
-        script.AppendLine(f"public {valueType} {fieldName} => Table{TableLanguageCSName}"
+        script.AppendLine(f"public {valueType} {fieldName} => Table{tableLanguageCSName}"
                           f".Find({GetFieldName(fieldType, fieldName)});")
     elif 'ResName' in fieldType:
         script.AppendLine(f"public string {fieldName};")
@@ -205,7 +206,8 @@ def GetDataAssignmentBase(fieldType, fieldName, script, isNewField=False, isInit
     if 'LNGRef' in fieldType:
         script.AppendLine(f"var LNGId = reader.ReadUInt32();")
         if isInitLNG:
-            script.AppendLine(f"{leftFieldName} = Table{TableLanguageCSName}.Find(LNGId);")
+            tableLanguageCSName = Config.TableLanguageCSName()
+            script.AppendLine(f"{leftFieldName} = Table{tableLanguageCSName}.Find(LNGId);")
     elif 'ResName' in fieldType or 'string' in fieldType:
         script.AppendLine(f"var tSize = reader.ReadUInt16();")
         script.AppendLine(f"var tBytes = reader.ReadBytes(tSize);")
@@ -455,11 +457,12 @@ def GetBaseType(fieldType):
 
 
 def CopyScripts():
-    if ScriptsExportPath.isspace() or len(ScriptsExportPath) == 0 or not os.path.exists(ScriptsExportPath):
+    scriptsExportPath = Config.ScriptsExportPath()
+    if scriptsExportPath.isspace() or len(scriptsExportPath) == 0 or not os.path.exists(scriptsExportPath):
         return
     for root, dirs, files in os.walk(ScriptsPath):
         for file in files:
-            CopyFile(os.path.join(ScriptsPath, file), os.path.join(ScriptsExportPath, file))
+            CopyFile(os.path.join(ScriptsPath, file), os.path.join(scriptsExportPath, file))
 
 
 def DeleteScripts():
@@ -469,13 +472,14 @@ def DeleteScripts():
 
 
 def CopyBytes():
-    if BytesExportPath.isspace() or len(BytesExportPath) == 0 or not os.path.exists(BytesExportPath):
+    bytesExportPath = Config.BytesExportPath()
+    if bytesExportPath.isspace() or len(bytesExportPath) == 0 or not os.path.exists(bytesExportPath):
         return
     for root, dirs, files in os.walk(BytesPath):
         for file in files:
-            CopyFile(os.path.join(BytesPath, file), os.path.join(BytesExportPath, file))
+            CopyFile(os.path.join(BytesPath, file), os.path.join(bytesExportPath, file))
         for tDir in dirs:
-            shutil.copytree(os.path.join(LNGBytesPath, tDir), os.path.join(BytesExportPath, tDir))
+            shutil.copytree(os.path.join(LNGBytesPath, tDir), os.path.join(bytesExportPath, tDir))
 
 
 def DeleteBytes():

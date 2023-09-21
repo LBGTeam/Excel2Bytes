@@ -6,9 +6,9 @@ import pandas as pd
 from CSScriptBuilder import CSScriptBuilder
 from ExcelCShapUtil import FieldExcelScript, LNGExcelScript, CustomFieldExcelScript
 from ExcelUtil import TurnBytesByExcel
-from LanguageUtil import CNLanguage
 from LogUtil import ShowLog
 from GlobalUtil import BytesPath, LanguageXlsxPath, GenerateScriptType, LNGBytesPath
+from ConfigData import Config
 
 
 # 生成单个字段的二进制文件
@@ -44,7 +44,8 @@ def GenerateFindFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
 def GenerateLNGBytes(sheetName, scriptName, extraNamespace):
     excelData = pd.read_excel(LanguageXlsxPath, sheet_name=sheetName, header=None)
     data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)
-    if CNLanguage == sheetName:
+    cnLanguage = Config.CNLanguage()
+    if cnLanguage == sheetName:
         LNGExcelScript(scriptName, scriptName.lower(), extraNamespace)
     # 将bytes保存到本地文件
     LNGPath = os.path.join(LNGBytesPath, sheetName)

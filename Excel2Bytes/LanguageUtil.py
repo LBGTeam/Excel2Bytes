@@ -3,35 +3,42 @@ import pandas as pd
 from openpyxl import load_workbook
 
 from LogUtil import ShowLog
-from GlobalUtil import LanguageXlsxPath, CNLanguage, IsUpdateAllLNG, LanguageKey, LanguageDict
+from GlobalUtil import LanguageXlsxPath, LanguageDict
+from ConfigData import Config
 
 
 def InitLanguage():
     ShowLog('初始化语言表')
+    isUpdateAllLNG = Config.IsUpdateAllLNG()
+    cnLanguage = Config.CNLanguage()
+    languageKey = Config.LanguageKey()
     if (not os.path.exists(LanguageXlsxPath) or
-            CNLanguage not in pd.read_excel(LanguageXlsxPath, sheet_name=None).keys()):
-        SaveLangData(CNLanguage, {'c': 'c', 'ID': 'text', 'uint': 'string', '编号': '文本'})
-    ReadLangData(CNLanguage)
-    if IsUpdateAllLNG:
-        for key in LanguageKey:
+            cnLanguage not in pd.read_excel(LanguageXlsxPath, sheet_name=None).keys()):
+        SaveLangData(cnLanguage, {'c': 'c', 'ID': 'text', 'uint': 'string', '编号': '文本'})
+    ReadLangData(cnLanguage)
+    if isUpdateAllLNG:
+        for key in languageKey:
             ReadLangData(key)
 
 
 def SaveLanguage():
     ShowLog('保存语言表')
-    SaveLangData(CNLanguage, LanguageDict[CNLanguage])
-    if IsUpdateAllLNG:
-        languageDict = {CNLanguage: {}}
-        for key, value in LanguageDict[CNLanguage].items():
-            languageDict[CNLanguage][key] = value
-            for keyLng in LanguageKey:
+    isUpdateAllLNG = Config.IsUpdateAllLNG()
+    cnLanguage = Config.CNLanguage()
+    languageKey = Config.LanguageKey()
+    SaveLangData(cnLanguage, LanguageDict[cnLanguage])
+    if isUpdateAllLNG:
+        languageDict = {cnLanguage: {}}
+        for key, value in LanguageDict[cnLanguage].items():
+            languageDict[cnLanguage][key] = value
+            for keyLng in languageKey:
                 if keyLng not in languageDict.keys():
                     languageDict[keyLng] = {}
                 if key in LanguageDict[keyLng].keys():
                     languageDict[keyLng][key] = LanguageDict[keyLng][key]
                 else:
                     languageDict[keyLng][key] = value
-        for keyLng in LanguageKey:
+        for keyLng in languageKey:
             SaveLangData(keyLng, languageDict[keyLng])
 
 
@@ -68,19 +75,22 @@ def SaveLangData(key, data):
 def GetLanguageKey(value):
     if value.isspace() or value == '':
         return 0
-    if value in LanguageDict[CNLanguage].values():
-        for key, val in LanguageDict[CNLanguage].items():
+    cnLanguage = Config.CNLanguage()
+    isUpdateAllLNG = Config.IsUpdateAllLNG()
+    languageKey = Config.LanguageKey()
+    if value in LanguageDict[cnLanguage].values():
+        for key, val in LanguageDict[cnLanguage].items():
             if val == value:
                 return key
     else:
-        if len(LanguageDict[CNLanguage]) == 0:
-            LanguageDict[CNLanguage][1] = value
+        if len(LanguageDict[cnLanguage]) == 0:
+            LanguageDict[cnLanguage][1] = value
             return 1
-        maxKey = max(LanguageDict[CNLanguage].keys())
+        maxKey = max(LanguageDict[cnLanguage].keys())
         newKey = maxKey + 1
-        LanguageDict[CNLanguage][newKey] = value
-        if IsUpdateAllLNG:
-            for key in LanguageKey:
+        LanguageDict[cnLanguage][newKey] = value
+        if isUpdateAllLNG:
+            for key in languageKey:
                 LanguageDict[key][newKey] = value
         return newKey
 

@@ -1,0 +1,23 @@
+{
+    "IsUpdateAllLNG": true,
+    "CNLanguage": "cn",
+    "TableLanguageCSName": "Languages",
+    "BytesExportPath": "",
+    "ScriptsExportPath": "",
+    "CoreExportPath": "",
+    "TableRootNamespace": "LBRuntime",
+    "TableResLoadAssembly": "LBUnity",
+    "LanguageKey": [
+        "tw",
+        "en"
+    ],
+    "SupportExcelFormats": [
+        ".xlsx",
+        ".xls"
+    ],
+    "TableSheetInfo": {
+        "ScriptsName": "",
+        "ImportType": "NoneType",
+        "ExtraNamespace": ""
+    }
+}
