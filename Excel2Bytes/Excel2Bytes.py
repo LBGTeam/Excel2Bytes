@@ -1,6 +1,5 @@
-from GenerateUtil import InitTable, ExportAllData, ExportExtraLNG
+from GenerateUtil import ExportAllData, ExportExtraLNG
 
 if __name__ == '__main__':
-    InitTable()
-    # ExportAllData()
-    ExportExtraLNG()
+    ExportAllData()
+    # ExportExtraLNG()
