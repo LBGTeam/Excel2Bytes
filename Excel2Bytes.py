@@ -12,5 +12,4 @@ if __name__ == '__main__':
             tableNames = sys.argv[2]
             ExportData(False, False, tableNames)
     else:
-        # FirstExportProject()
-        ExportAllData()
+        FirstExportProject()

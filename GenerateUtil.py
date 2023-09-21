@@ -44,7 +44,9 @@ def ExportData(isUpdateAllLNG=False, isDeleteFile=False, tableNames=None):
     if isDeleteFile:
         DeleteFile()
     if tableNames is not None:
-        tableNames.append(os.path.basename(Config.LanguageXlsxPath()))
+        lngName = os.path.basename(Config.LanguageXlsxPath())
+        if lngName not in tableNames:
+            tableNames.append(lngName)
     for excelItem in TableConfig.items():
         if tableNames is None or excelItem[0] in tableNames:
             for sheetItem in excelItem[1].items():
