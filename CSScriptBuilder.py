@@ -100,6 +100,10 @@ class CSScriptBuilder(list):
         self.AppendLine(f'{modifier} {methodName}({parameters})')
         self.BeginBrace()
 
+    def BeginStaticMethod(self, methodName, modifier="public", returnType='void', parameters=''):
+        self.AppendLine(f'{modifier} static {returnType} {methodName}({parameters})')
+        self.BeginBrace()
+
     def EndMethod(self):
         self.EndBrace()
 

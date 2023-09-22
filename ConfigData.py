@@ -1,9 +1,8 @@
 import os
 
-import pandas as pd
-
 from GlobalUtil import ConfigJsonPath, GetScriptsName, TableConfigJsonPath
 from JsonUtil import LoadConfigJsonData, SaveJsonData, LoadTableJsonData
+from TableLoadUtil import GetSheetNames
 
 
 class ConfigData:
@@ -97,8 +96,7 @@ class TableConfigData:
         for fileName in fileLists:
             if any([fileName.endswith(ext) for ext in Config.SupportExcelFormats()]):
                 filePath = os.path.join(Config.TablePath(), fileName)
-                workbook = pd.ExcelFile(filePath)
-                for sheetName in workbook.sheet_names:
+                for sheetName in GetSheetNames(filePath):
                     for info in Config.TableSheetInfo().keys():
                         self.GetOrSetTableJsonData(fileName, sheetName, info)
                     scriptName = self.ScriptsName(fileName, sheetName)

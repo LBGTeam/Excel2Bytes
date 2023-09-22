@@ -4,6 +4,7 @@ from ConfigData import Config
 
 
 def AddNameSpace(scripts, extraNamespace):
+    scripts.AppendUsing('System')
     scripts.AppendUsing('System.Collections.Generic')
     scripts.AppendUsing('System.IO')
     scripts.AppendUsing('System.Text')
@@ -11,7 +12,7 @@ def AddNameSpace(scripts, extraNamespace):
         if not ns.isspace() and len(ns) > 0 and ns != ' ':
             scripts.AppendUsing(ns)
     scripts.AppendUsing(Config.TableResLoadAssembly())
-    scripts.AppendUsing(Config.TableRootNamespace())
+    scripts.AppendUsing(Config.TableLoadAssembly())
 
 
 def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder, extraNamespace):
@@ -32,7 +33,7 @@ def FieldExcelScript(scriptName, secValueType, bytesName, scriptBuilder, extraNa
     Scripts.AppendLine(f'TableManager.Add(this);')
     Scripts.AppendLine(f'm_Cached = new Dictionary<{OfferMap}, {GetCShapeType(secValueType)}>();')
     Scripts.AppendLine(f'//这里需要走自己资源加载字节文件')
-    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")}),'
+    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")},'
                        f' Encoding.UTF8);')
     Scripts.EndMethod()
     Scripts.AppendEmptyLine()
@@ -81,7 +82,7 @@ def LNGExcelScript(scriptName, bytesName, extraNamespace):
     Scripts.AppendLine(f'm_Cached = new Dictionary<uint, string>();')
     Scripts.AppendLine(f'm_Entries = new Dictionary<uint, ulong>();')
     Scripts.AppendLine(f'//这里需要走自己资源加载字节文件')
-    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")}),'
+    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")},'
                        f' Encoding.UTF8);')
     Scripts.AppendLine(f'ulong allOffset = 0;')
     Scripts.BeginWhile('true')
@@ -166,7 +167,7 @@ def FindExcelScript(scriptName, pair, bytesName, extraNamespace):
     Scripts.AppendLine(f'TableManager.Add(this);')
     Scripts.AppendLine(f'm_Cached = new Dictionary<{firstType}, Data>();')
     Scripts.AppendLine(f'//这里需要走自己资源加载字节文件')
-    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")}),'
+    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")},'
                        f' Encoding.UTF8);')
     Scripts.EndMethod()
     Scripts.AppendEmptyLine()
@@ -225,7 +226,7 @@ def CustomFieldExcelScript(scriptName, bytesName, scriptBuilder, extraNamespace)
     Scripts.BeginConstructionMethod(scriptName, 'public')
     Scripts.AppendLine(f'TableManager.Add(this);')
     Scripts.AppendLine(f'//这里需要走自己资源加载字节文件')
-    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")}),'
+    Scripts.AppendLine(f'reader = new BinaryReader({Config.ResLoadScripts().format(f"{bytesName}.bytes")},'
                        f' Encoding.UTF8);')
     Scripts.AppendLine(f'InitData();')
     Scripts.EndMethod()

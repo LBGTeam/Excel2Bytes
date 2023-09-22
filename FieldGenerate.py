@@ -1,7 +1,6 @@
 import os.path
 
 import numpy as np
-import pandas as pd
 
 from CSScriptBuilder import CSScriptBuilder
 from ExcelCShapUtil import FieldExcelScript, LNGExcelScript, CustomFieldExcelScript
@@ -9,17 +8,18 @@ from ExcelUtil import TurnBytesByExcel
 from LogUtil import ShowLog
 from GlobalUtil import GenerateScriptType
 from ConfigData import Config
+from TableLoadUtil import LoadExcel, TableDataIsNone
 
 
 # 生成单个字段的二进制文件
 def GenerateFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
-    excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
-    firstRow = excelData.iloc[0]
-    columns_with_c = np.where(firstRow.str.contains('c', case=False))[0]
+    excelTableData = LoadExcel(excelPath, sheetName)
+    firstRow = excelTableData[0]
+    columns_with_c = np.where([(not TableDataIsNone(col)) and (str(col)).lower().find('c') != -1 for col in firstRow])[0]
     secondIndex = columns_with_c[1]
-    secValueOldType = str(excelData.iloc[2, secondIndex])
+    secValueOldType = str(excelTableData[2][secondIndex])
     Scripts = CSScriptBuilder()
-    data_bytes = TurnBytesByExcel(excelData, 4, 1, GenerateScriptType.FieldType, Scripts)
+    data_bytes = TurnBytesByExcel(os.path.basename(excelPath), excelTableData, 4, 1, GenerateScriptType.FieldType, Scripts)
     FieldExcelScript(scriptName, secValueOldType, scriptName.lower(), Scripts, extraNamespace)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(Config.BytesPath(), f'{scriptName.lower()}.bytes')
@@ -30,9 +30,9 @@ def GenerateFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
 
 # 生成单个字段的二进制文件
 def GenerateFindFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
-    excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
+    excelTableData = LoadExcel(excelPath, sheetName)
     Scripts = CSScriptBuilder()
-    data_bytes = TurnBytesByExcel(excelData, 2, 2, GenerateScriptType.CustomTypeField, Scripts)
+    data_bytes = TurnBytesByExcel(os.path.basename(excelPath), excelTableData, 2, 2, GenerateScriptType.CustomTypeField, Scripts)
     CustomFieldExcelScript(scriptName, scriptName.lower(), Scripts, extraNamespace)
     # 将bytes保存到本地文件
     bytesPath = os.path.join(Config.BytesPath(), f'{scriptName.lower()}.bytes')
@@ -41,9 +41,10 @@ def GenerateFindFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
     ShowLog(f'生成二进制文件: {bytesPath}')
 
 
-def GenerateLNGBytes(sheetName, scriptName, extraNamespace):
-    excelData = pd.read_excel(Config.LanguageXlsxPath(), sheet_name=sheetName, header=None)
-    data_bytes = TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)
+def GenerateLNGBytes(sheetName, extraNamespace):
+    scriptName = f"Table{os.path.basename(Config.LanguageXlsxPath()).split('.')[0]}"
+    excelTableData = LoadExcel(Config.LanguageXlsxPath(), sheetName)
+    data_bytes = TurnBytesByExcel(os.path.basename(Config.LanguageXlsxPath()), excelTableData, 4, 0, GenerateScriptType.LNGType)
     cnLanguage = Config.CNLanguage()
     if cnLanguage == sheetName:
         LNGExcelScript(scriptName, scriptName.lower(), extraNamespace)
@@ -58,5 +59,5 @@ def GenerateLNGBytes(sheetName, scriptName, extraNamespace):
 
 
 def GenerateNoExportLNGBytes(excelPath, sheetName):
-    excelData = pd.read_excel(excelPath, sheet_name=sheetName, header=None)
-    TurnBytesByExcel(excelData, 4, 0, GenerateScriptType.LNGType)
+    excelTableData = LoadExcel(excelPath, sheetName)
+    TurnBytesByExcel(os.path.basename(excelPath), excelTableData, 4, 0, GenerateScriptType.LNGType)

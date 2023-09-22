@@ -5,7 +5,6 @@ import struct
 import sys
 
 import numpy as np
-import pandas as pd
 
 from CSScriptBuilder import CSScriptBuilder
 from FileUtil import CopyFile
@@ -14,6 +13,7 @@ from LogUtil import ShowLog
 from GlobalUtil import GenerateScriptType, IgnoreSizeTypes
 from ResRefUtil import AddResRef
 from ConfigData import Config
+from TableLoadUtil import TableDataIsNone
 
 SizeMap = 'ushort'
 OfferMap = 'ulong'
@@ -137,6 +137,8 @@ def GetDataProperty(fieldType, fieldName, script):
 
 
 def GetDataAssignment(fieldType, fieldName, script, isInitLNG=True):
+    if 'LNGRef' in fieldType or 'ResName' in fieldType:
+        script.BeginBrace()
     if '[][]' in fieldType:
         singleType = fieldType[:-4]
         script.AppendLine(f"var {fieldName}Size = reader.ReadUInt16();")
@@ -199,6 +201,8 @@ def GetDataAssignment(fieldType, fieldName, script, isInitLNG=True):
         script.EndFor()
     else:
         GetDataAssignmentBase(fieldType, fieldName, script, False, isInitLNG)
+    if 'LNGRef' in fieldType or 'ResName' in fieldType:
+        script.EndBrace()
 
 
 def GetDataAssignmentBase(fieldType, fieldName, script, isNewField=False, isInitLNG=True):
@@ -208,6 +212,8 @@ def GetDataAssignmentBase(fieldType, fieldName, script, isNewField=False, isInit
         if isInitLNG:
             tableLanguageCSName = Config.TableLanguageCSName()
             script.AppendLine(f"{leftFieldName} = Table{tableLanguageCSName}.Find(LNGId);")
+        else:
+            script.AppendLine(f"{leftFieldName}Id = LNGId;")
     elif 'ResName' in fieldType or 'string' in fieldType:
         script.AppendLine(f"var tSize = reader.ReadUInt16();")
         script.AppendLine(f"var tBytes = reader.ReadBytes(tSize);")
@@ -245,22 +251,22 @@ def GetCustomFieldProperty(fieldType, fieldName, script):
 
 
 # 将Excel数据转换为二进制
-def TurnBytesByExcel(excelData, startRow, startColumn, generateScriptType, script=None):
-    rows = excelData.iloc[startRow:].iterrows() if startRow > 0 else excelData.iterrows()
-    firstRow = excelData.iloc[0]
-    columns_with_c = np.where(firstRow.str.contains('c', case=False))[0]
+def TurnBytesByExcel(excelName, excelTableData, startRow, startColumn, generateScriptType, script=None):
+    rows = excelTableData[startRow:]
+    firstRow = excelTableData[0]
+    columns_with_c = np.where([(not TableDataIsNone(col)) and (str(col)).lower().find('c') != -1 for col in firstRow])[0]
     if len(columns_with_c) < 2:
-        ShowLog(f'表格数据不完整, 请检查表格: {excelData}')
+        ShowLog(f'表格数据不完整, 请检查表格: {excelName}')
         sys.exit(1)
     firstIndex = columns_with_c[0]
     secondIndex = columns_with_c[1]
-    valueOldType = str(excelData.iloc[2, secondIndex])
+    valueOldType = str(excelTableData[2][secondIndex])
     dataBytes = b''
     allSize = 0
     scInit = CSScriptBuilder()
     scField = CSScriptBuilder()
     scProperty = CSScriptBuilder()
-    for index, row in rows:
+    for row in rows:
         tBytes = b''
         tSize = 0
         fieldType = row[secondIndex]
@@ -272,13 +278,12 @@ def TurnBytesByExcel(excelData, startRow, startColumn, generateScriptType, scrip
             GetCustomFieldProperty(fieldType, row[firstIndex], scProperty)
         # 将数据添加到 Data1 对象中
         for col_index in range(startColumn, len(row)):
-            if 'c' in str(excelData.iloc[0, col_index]):  # 判断是否需要的数据
-                if generateScriptType != GenerateScriptType.CustomTypeField:
-                    fieldType = excelData.iloc[2, col_index]
-                fieldValue = row[col_index]
-                data = TurnBytes(fieldType, fieldValue)
-                tBytes += data[0]
-                tSize += data[1]
+            if generateScriptType != GenerateScriptType.CustomTypeField:
+                fieldType = excelTableData[2][col_index]
+            fieldValue = row[col_index]
+            data = TurnBytes(fieldType, fieldValue)
+            tBytes += data[0]
+            tSize += data[1]
         if generateScriptType not in IgnoreSizeTypes:
             tSize += typeMap[SizeMap][1]
             dataBytes += struct.pack(f"{typeMap[SizeMap][0]}", tSize)
@@ -300,13 +305,11 @@ def TurnBytesByExcel(excelData, startRow, startColumn, generateScriptType, scrip
 
 
 # 是否需要记录大小(方法：如果不是基础类型都是要记录的)
-def IsNeedRecordSize(excelData):
-    for index, colum in excelData.iloc[0].items():  # 修改为第一行（索引为0）
-        # 将数据添加到 Data1 对象中
-        if 'c' in str(colum).lower():
-            fieldType = excelData.iloc[2, index]  # 修改为当前行（索引为1）的当前列
-            if fieldType in typeMap or fieldType == 'LNGRef':  # 修改为当前行（索引为2）的当前列
-                return False
+def IsNeedRecordSize(excelTableData):
+    for index, colum in excelTableData[0].items():  # 修改为第一行（索引为0）
+        fieldType = excelTableData[2][index]  # 修改为当前行（索引为1）的当前列
+        if fieldType in typeMap or fieldType == 'LNGRef':  # 修改为当前行（索引为2）的当前列
+            return False
     return True
 
 
@@ -358,7 +361,7 @@ def TurnBytes(fieldType, fieldValue):
         size = 0
         tByte = b''
         maxCount = 0
-        if not pd.isna(fieldValue):
+        if not TableDataIsNone(fieldValue):
             maxCount = len(fieldValue.split('|'))
             for singleValue in fieldValue.split('|'):
                 sByte, sSize = SingleTurnBytes(singleType, singleValue)
@@ -372,7 +375,7 @@ def TurnBytes(fieldType, fieldValue):
         size = 0
         tByte = b''
         maxCount = 0
-        if not pd.isna(fieldValue):
+        if not TableDataIsNone(fieldValue):
             maxCount = len(fieldValue.split('|'))
             for singleValue in fieldValue.split('|'):
                 sByte, sSize = SingleTurnBytes(singleType, singleValue)
@@ -389,9 +392,9 @@ def TurnBytes(fieldType, fieldValue):
         size = 0
         tByte = b''
         tCon = 0
-        if not pd.isna(fieldValue):
-            tCon = len(fieldValue.split('|'))
-            for singleValue in fieldValue.split('|'):
+        if not TableDataIsNone(fieldValue):
+            tCon = len(str(fieldValue).split('|'))
+            for singleValue in str(fieldValue).split('|'):
                 array = singleValue.split(':')
                 qByte, qSize = SingleTurnBytes(type1, array[0])
                 tByte += qByte
@@ -410,7 +413,7 @@ def TurnBytes(fieldType, fieldValue):
         size = 0
         tByte = b''
         tCon = 0
-        if not pd.isna(fieldValue):
+        if not TableDataIsNone(fieldValue):
             tCon = len(fieldValue.split('|'))
             for singleValue in fieldValue.split('|'):
                 array = singleValue.split(':')
@@ -431,19 +434,24 @@ def TurnBytes(fieldType, fieldValue):
 def SingleTurnBytes(fieldType, fieldValue):
     if fieldType in typeMap:
         fmt, size = typeMap[fieldType]
-        return struct.pack(fmt, GetBaseType(fieldType)(fieldValue)), size
+        if TableDataIsNone(fieldValue):
+            fieldValue = 0
+        else:
+            fieldValue = GetBaseType(fieldType)(fieldValue)
+        return struct.pack(fmt, fieldValue), size
     elif fieldType == 'string' or fieldType == 'ResName':
-        if pd.isna(fieldValue):
-            fieldValue = ' '
+        if TableDataIsNone(fieldValue):
+            fieldValue = ''
         if fieldType == 'ResName':
             AddResRef(fieldValue)
-        value = fieldValue.encode('utf-8')
+        value = (str(fieldValue)).encode('utf-8')
+
         strSize = len(str(value))
         byte = struct.pack(f"{typeMap[SizeMap][0]}", strSize) + struct.pack(f'{strSize}s', value)
         size = typeMap[SizeMap][1] + strSize
         return byte, size
     elif fieldType == 'LNGRef':
-        if pd.isna(fieldValue):
+        if TableDataIsNone(fieldValue):
             struct.pack('I', 0), 4
         return struct.pack('I', GetLanguageKey(fieldValue)), 4
     else:
@@ -462,13 +470,16 @@ def CopyScripts():
         return
     for root, dirs, files in os.walk(Config.ScriptsPath()):
         for file in files:
+            if os.path.exists(os.path.join(scriptsExportPath, file)):
+                os.remove(os.path.join(scriptsExportPath, file))
             CopyFile(os.path.join(Config.ScriptsPath(), file), os.path.join(scriptsExportPath, file))
 
 
 def DeleteScripts():
     for root, dirs, files in os.walk(Config.ScriptsPath()):
         for file in files:
-            os.remove(os.path.join(Config.ScriptsPath(), file))
+            if os.path.exists(os.path.join(Config.ScriptsPath(), file)):
+                os.remove(os.path.join(Config.ScriptsPath(), file))
 
 
 def CopyBytes():
@@ -477,14 +488,42 @@ def CopyBytes():
         return
     for root, dirs, files in os.walk(Config.BytesPath()):
         for file in files:
+            if os.path.exists(os.path.join(bytesExportPath, file)):
+                os.remove(os.path.join(bytesExportPath, file))
             CopyFile(os.path.join(Config.BytesPath(), file), os.path.join(bytesExportPath, file))
         for tDir in dirs:
+            if os.path.exists(os.path.join(bytesExportPath, tDir)):
+                shutil.rmtree(os.path.join(bytesExportPath, tDir))
             shutil.copytree(os.path.join(Config.BytesPath(), tDir), os.path.join(bytesExportPath, tDir))
 
 
 def DeleteBytes():
     for root, dirs, files in os.walk(Config.BytesPath()):
         for tFile in files:
-            os.remove(os.path.join(Config.BytesPath(), tFile))
+            if os.path.exists(os.path.join(Config.BytesPath(), tFile)):
+                os.remove(os.path.join(Config.BytesPath(), tFile))
         for tDir in dirs:
-            shutil.rmtree(os.path.join(Config.BytesPath(), tDir))
+            if os.path.exists(os.path.join(Config.BytesPath(), tDir)):
+                shutil.rmtree(os.path.join(Config.BytesPath(), tDir))
+
+
+def CopyCore():
+    for root, dirs, files in os.walk(Config.CorePath()):
+        for file in files:
+            if os.path.exists(os.path.join(Config.ScriptsPath(), file)):
+                os.remove(os.path.join(Config.ScriptsPath(), file))
+            CopyFile(os.path.join(Config.CorePath(), file), os.path.join(Config.CoreExportPath(), file))
+        for tDir in dirs:
+            if os.path.exists(os.path.join(Config.ScriptsPath(), tDir)):
+                shutil.rmtree(os.path.join(Config.ScriptsPath(), tDir))
+            shutil.copytree(os.path.join(Config.CorePath(), tDir), os.path.join(Config.CoreExportPath(), tDir))
+
+
+def DeleteCore():
+    for root, dirs, files in os.walk(Config.CorePath()):
+        for tFile in files:
+            if os.path.exists(os.path.join(Config.CoreExportPath(), tFile)):
+                os.remove(os.path.join(Config.CoreExportPath(), tFile))
+        for tDir in dirs:
+            if os.path.exists(os.path.join(Config.CoreExportPath(), tDir)):
+                shutil.rmtree(os.path.join(Config.CoreExportPath(), tDir))

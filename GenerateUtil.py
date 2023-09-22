@@ -31,7 +31,7 @@ def GenerateBytes(scriptType, excelPath, sheetName, scriptName, extraNamespace):
     elif scriptType == GenerateScriptType.FindType.name:
         GenerateFindBytes(excelPath, sheetName, scriptName, extraNamespace)
     elif scriptType == GenerateScriptType.LNGType.name:
-        GenerateLNGBytes(sheetName, scriptName, extraNamespace)
+        GenerateLNGBytes(sheetName, extraNamespace)
     elif scriptType == GenerateScriptType.CustomTypeField.name:
         GenerateFindFieldBytes(excelPath, sheetName, scriptName, extraNamespace)
     elif scriptType == GenerateScriptType.NoExportLNGType.name:

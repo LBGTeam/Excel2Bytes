@@ -1,10 +1,13 @@
 from CSScriptBuilder import CSScriptBuilder
 from ConfigData import Config
+from ExcelUtil import DeleteCore, CopyCore
 
 
 # 首次生成对应的脚本
 def FirstGenerateData():
+    DeleteCore()
     CreateTableManagerCs()
+    CopyCore()
 
 
 # 生成单个字段的二进制文件
@@ -23,12 +26,12 @@ def CreateTableManagerCs():
     script.AppendField('s_Cached', 'List<ITable>', 'private static', 'new List<ITable>()')
     # 添加方法
     script.AppendEmptyLine()
-    script.BeginMethod("Add", parameters="ITable table")
+    script.BeginStaticMethod("Add", parameters="ITable table")
     script.AppendLine("Debug.Assert(s_Inited, \"add but TableManager not init \");")
     script.AppendLine("s_Cached.Add(table);")
     script.EndMethod()
     script.AppendEmptyLine()
-    script.BeginMethod("Remove", parameters="ITable table")
+    script.BeginStaticMethod("Remove", parameters="ITable table")
     script.AppendLine("Debug.Assert(s_Inited, \"remove but TableManager not init\");")
     script.AppendLine("if (s_Cached.Remove(table))")
     script.BeginBrace()
@@ -36,12 +39,12 @@ def CreateTableManagerCs():
     script.EndBrace()
     script.EndMethod()
     script.AppendEmptyLine()
-    script.BeginMethod("Init")
+    script.BeginStaticMethod("Init")
     script.AppendLine("Debug.Assert(!s_Inited, \"TableManager already init\");")
     script.AppendLine("s_Inited = true;")
     script.EndMethod()
     script.AppendEmptyLine()
-    script.BeginMethod("UnInit")
+    script.BeginStaticMethod("UnInit")
     script.AppendLine("Debug.Assert(s_Inited, \"TableManager not init\");")
     script.AppendLine("s_Inited = false;")
     script.AppendLine("foreach (var table in s_Cached)")
