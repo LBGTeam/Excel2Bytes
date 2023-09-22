@@ -3,3 +3,5 @@
 /dist
 /Save
 /Config
+/__pycache__
+/venv
