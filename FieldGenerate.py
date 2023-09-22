@@ -14,10 +14,7 @@ from TableLoadUtil import LoadExcel, TableDataIsNone
 # 生成单个字段的二进制文件
 def GenerateFieldBytes(excelPath, sheetName, scriptName, extraNamespace):
     excelTableData = LoadExcel(excelPath, sheetName)
-    firstRow = excelTableData[0]
-    columns_with_c = np.where([(not TableDataIsNone(col)) and (str(col)).lower().find('c') != -1 for col in firstRow])[0]
-    secondIndex = columns_with_c[1]
-    secValueOldType = str(excelTableData[2][secondIndex])
+    secValueOldType = str(excelTableData[2][1])
     Scripts = CSScriptBuilder()
     data_bytes = TurnBytesByExcel(os.path.basename(excelPath), excelTableData, 4, 1, GenerateScriptType.FieldType, Scripts)
     FieldExcelScript(scriptName, secValueOldType, scriptName.lower(), Scripts, extraNamespace)

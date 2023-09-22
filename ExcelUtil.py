@@ -254,13 +254,10 @@ def GetCustomFieldProperty(fieldType, fieldName, script):
 def TurnBytesByExcel(excelName, excelTableData, startRow, startColumn, generateScriptType, script=None):
     rows = excelTableData[startRow:]
     firstRow = excelTableData[0]
-    columns_with_c = np.where([(not TableDataIsNone(col)) and (str(col)).lower().find('c') != -1 for col in firstRow])[0]
-    if len(columns_with_c) < 2:
+    if len(firstRow) < 2:
         ShowLog(f'表格数据不完整, 请检查表格: {excelName}')
         sys.exit(1)
-    firstIndex = columns_with_c[0]
-    secondIndex = columns_with_c[1]
-    valueOldType = str(excelTableData[2][secondIndex])
+    valueOldType = str(excelTableData[2][1])
     dataBytes = b''
     allSize = 0
     scInit = CSScriptBuilder()
@@ -269,13 +266,13 @@ def TurnBytesByExcel(excelName, excelTableData, startRow, startColumn, generateS
     for row in rows:
         tBytes = b''
         tSize = 0
-        fieldType = row[secondIndex]
+        fieldType = row[1]
         if generateScriptType == GenerateScriptType.FieldType:
-            GetFieldProperty(valueOldType, row[firstIndex], allSize, script)
+            GetFieldProperty(valueOldType, row[0], allSize, script)
         elif generateScriptType == GenerateScriptType.CustomTypeField:
-            GetDataAssignment(fieldType, f'm_{row[firstIndex]}', scInit)
-            GetCustomField(fieldType, row[firstIndex], scField)
-            GetCustomFieldProperty(fieldType, row[firstIndex], scProperty)
+            GetDataAssignment(fieldType, f'm_{row[0]}', scInit)
+            GetCustomField(fieldType, row[0], scField)
+            GetCustomFieldProperty(fieldType, row[0], scProperty)
         # 将数据添加到 Data1 对象中
         for col_index in range(startColumn, len(row)):
             if generateScriptType != GenerateScriptType.CustomTypeField:
