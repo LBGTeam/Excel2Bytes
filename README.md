@@ -1,4 +1,4 @@
-# Excel2Bytes(开发中)
+# Excel2Bytes(v0.1.0)
 [**Excel2Bytes仓库**](https://github.com/LBGTeam/Excel2Bytes)  
 
 py写的游戏开发用的导表工具。目前支持C#脚本。
@@ -71,6 +71,102 @@ py写的游戏开发用的导表工具。目前支持C#脚本。
 |TableSheetInfo|页签文件要包含的信息，扩展使用（正常情况下不要修改，增加需要修改代码以作支持）|
 
 ## 表格类型
+
+首次运行会在当前目录的Config文件夹下生成一个TableConfig.json配置文件，这个文件里面是导表工具的配置。  
+
+示例  
+
+	{
+	    "Global.xlsx": {
+	        "Global": {
+	            "ScriptsName": "TableGlobal",
+	            "ImportType": "CustomTypeField",
+	            "ExtraNamespace": ""
+	        }
+	    },
+	    "Languages.xlsx": {
+	        "cn": {
+	            "ScriptsName": "TableLanguagescn",
+	            "ImportType": "LNGType",
+	            "ExtraNamespace": ""
+	        },
+	        "tw": {
+	            "ScriptsName": "TableLanguagestw",
+	            "ImportType": "LNGType",
+	            "ExtraNamespace": ""
+	        },
+	        "en": {
+	            "ScriptsName": "TableLanguagesen",
+	            "ImportType": "LNGType",
+	            "ExtraNamespace": ""
+	        }
+	    },
+	    "LanguagesUI.xlsx": {
+	        "UI": {
+	            "ScriptsName": "TableLanguagesUIUI",
+	            "ImportType": "NoExportLNGType",
+	            "ExtraNamespace": ""
+	        }
+	    },
+	    "Level.xlsx": {
+	        "Level": {
+	            "ScriptsName": "TableLevel",
+	            "ImportType": "FindType",
+	            "ExtraNamespace": ""
+	        },
+	        "Chase": {
+	            "ScriptsName": "TableLevelChase",
+	            "ImportType": "FindType",
+	            "ExtraNamespace": ""
+	        }
+	    },
+	    "ResName.xlsx": {
+	        "ResName": {
+	            "ScriptsName": "TableResName",
+	            "ImportType": "FieldType",
+	            "ExtraNamespace": ""
+	        },
+	        "ArrayResName": {
+	            "ScriptsName": "TableResNameArrayResName",
+	            "ImportType": "FieldType",
+	            "ExtraNamespace": ""
+	        }
+	    },
+	    "Text.xlsx": {
+	        "System": {
+	            "ScriptsName": "TableTextSystem",
+	            "ImportType": "FieldType",
+	            "ExtraNamespace": ""
+	        },
+	        "Network": {
+	            "ScriptsName": "TableTextNetwork",
+	            "ImportType": "NoneType",
+	            "ExtraNamespace": ""
+	        },
+	        "SystemFind": {
+	            "ScriptsName": "TableTextSystemFind",
+	            "ImportType": "NoneType",
+	            "ExtraNamespace": ""
+	        },
+	        "SystemArray": {
+	            "ScriptsName": "TableTextSystemArray",
+	            "ImportType": "FieldType",
+	            "ExtraNamespace": ""
+	        },
+	        "Rich": {
+	            "ScriptsName": "TableTextRich",
+	            "ImportType": "NoneType",
+	            "ExtraNamespace": ""
+	        }
+	    }
+	}
+
+|key|描述|  
+|:--|:--|  
+|ScriptsName|表示生成的脚本的名字，也是字节文件的名字|
+|ImportType|表示导入类型，NoneType代表不导入，其他类型下文会介绍|  
+|ExtraNamespace|表示生成脚本文件需要额外引用的命名空间|  
+
 ### 导入类型  
 
 每个表格得每个页签都需要选择一个导入类型，没选择导入类型得页签代表不进行导入。导入类型决定了生成得表格数据得bytes文件和对应得脚本文件。  
@@ -177,6 +273,15 @@ py写的游戏开发用的导表工具。目前支持C#脚本。
 在第一行中，我们使用了字符c来表示是否要导入该列的数据。只有含有c的列才会被导入到数据文件中。
 在第二行中，我们提供了对每一列所代表的字段的描述。这些描述可以帮助读者更好地理解每一列数据的含义。   
 以上是对多类型表格的描述和示例。你可以根据需要调整表格的结构和内容。  
+
+## 导入命令 
+后续版本会支持界面按钮调用，目前仅支持命令。(注：需要配置python环境)  
+
+|命令|解释|  
+|:--|:--|  
+|python Excel2Bytes.py -a|表示要导入表格配置里的所有表格数据，并且会生成多语言|  
+|python Excel2Bytes.py -e|表示只导入NoExportLNGType类型的表，用于游戏中固定文本的多语言生成|  
+|python Excel2Bytes.py -c ["Global.xlsx","Level.xlsx"]|表示只导入我传入的第二个参数里面包含的表，只会生成中文的语言，其他多语言不会生成|  
 
 ## 支持的数据格式
 

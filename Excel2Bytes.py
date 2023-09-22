@@ -4,6 +4,7 @@ import sys
 from GenerateUtil import ExportAllData, ExportExtraLNG, FirstExportProject, ExportData
 
 if __name__ == '__main__':
+    FirstExportProject()
     if len(sys.argv) > 1:
         if sys.argv[1] == '-a':
             ExportAllData()
@@ -13,5 +14,4 @@ if __name__ == '__main__':
             tableNames = ast.literal_eval(sys.argv[2])
             ExportData(False, False, tableNames)
     else:
-        FirstExportProject()
         ExportAllData()
