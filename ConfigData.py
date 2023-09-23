@@ -1,6 +1,6 @@
 import os
 
-from GlobalUtil import ConfigJsonPath, GetScriptsName, TableConfigJsonPath
+from GlobalUtil import ConfigJsonPath, GetScriptsName, TableConfigJsonPath, GenerateScriptType
 from JsonUtil import LoadConfigJsonData, SaveJsonData, LoadTableJsonData
 from TableLoadUtil import GetSheetNames
 
@@ -111,14 +111,23 @@ class TableConfigData:
         if fileName not in self.tableConfig.keys():
             self.tableConfig[fileName] = {}
             self.tableConfig[fileName][sheetName] = {}
-            self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
+            if fileName == os.path.basename(Config.LanguageXlsxPath()) and info == "ImportType":
+                self.tableConfig[fileName][sheetName][info] = GenerateScriptType.LNGType.name
+            else:
+                self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
             SaveJsonData(TableConfigJsonPath, TableConfig.tableConfig)
         elif sheetName not in self.tableConfig[fileName].keys():
             self.tableConfig[fileName][sheetName] = {}
-            self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
+            if fileName == os.path.basename(Config.LanguageXlsxPath()) and info == "ImportType":
+                self.tableConfig[fileName][sheetName][info] = GenerateScriptType.LNGType.name
+            else:
+                self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
             SaveJsonData(TableConfigJsonPath, TableConfig.tableConfig)
         elif info not in self.tableConfig[fileName][sheetName].keys() and value is None:
-            self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
+            if fileName == os.path.basename(Config.LanguageXlsxPath()) and info == "ImportType":
+                self.tableConfig[fileName][sheetName][info] = GenerateScriptType.LNGType.name
+            else:
+                self.tableConfig[fileName][sheetName][info] = Config.TableSheetInfo()[info]
             SaveJsonData(TableConfigJsonPath, TableConfig.tableConfig)
         if value is not None:
             self.tableConfig[fileName][sheetName][info] = value
