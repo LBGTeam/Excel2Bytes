@@ -39,7 +39,7 @@ py写的游戏开发用的导表工具。目前支持C#脚本。
 	    ],
 	    "SupportExcelFormats": [
 	        ".xlsx",
-	        ".xls"
+	        ".csv"
 	    ],
 	    "TableSheetInfo": {
 	        "ScriptsName": "",
