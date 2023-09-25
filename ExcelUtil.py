@@ -96,6 +96,26 @@ def GetFieldName(fieldType, fieldName):
 
 # 读取bytes的时候的类型
 def GetCShapeType(fieldType, isBase=False):
+    if 'map' in fieldType.lower():
+        pattern = r"map\|(\w+)\|(\w+)"
+        matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
+        type1 = GetCShapeType(matches[0][0], isBase)
+        type2 = GetCShapeType(matches[0][1], isBase)
+        return f'Dictionary<{type1}, {type2}>' if isBase else f'Dictionary<{type1}, {type2}>'
+    if 'dictionary' in fieldType.lower():
+        pattern = r"dictionary<(\w+),(\w+)>"
+        matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
+        type1 = GetCShapeType(matches[0][0], isBase)
+        type2 = GetCShapeType(matches[0][1], isBase)
+        return f'Dictionary<{type1}, {type2}>' if isBase else f'Dictionary<{type1}, {type2}>'
+    if 'double_slc' in fieldType.lower():
+        return f'{GetCShapeType(fieldType.replace("double_slc|", ""))}[][]'
+    if '[][]' in fieldType:
+        return f'{GetCShapeType(fieldType[:-4])}[][]'
+    if 'slc' in fieldType.lower():
+        return f'{GetCShapeType(fieldType.replace("slc|", ""))}[]'
+    if '[]' in fieldType:
+        return f'{GetCShapeType(fieldType[:-2])}[]'
     if 'LNGRef' in fieldType:
         if isBase:
             return fieldType.replace('LNGRef', 'uint')
@@ -106,20 +126,6 @@ def GetCShapeType(fieldType, isBase=False):
         return fieldType.replace('int64', 'long')
     if 'uint64' in fieldType:
         return fieldType.replace('uint64', 'ulong')
-    if 'map' in fieldType.lower():
-        pattern = r"map\|(\w+)\|(\w+)"
-        replacement = r"Dictionary<\1,\2>"
-        return re.sub(pattern, replacement, fieldType, flags=re.IGNORECASE)
-    if 'dictionary' in fieldType.lower():
-        pattern = r"dictionary\|(\w+)\|(\w+)"
-        replacement = r"Dictionary<\1,\2>"
-        return re.sub(pattern, replacement, fieldType, flags=re.IGNORECASE)
-    if 'slc' in fieldType.lower():
-        return f'{GetCShapeType(fieldType.replace("slc|", ""))}[]'
-    if 'double_slc' in fieldType.lower():
-        return f'{GetCShapeType(fieldType.replace("double_slc|", ""))}[][]'
-    if fieldType.replace('[]', '') in typeMap:
-        return fieldType
     return fieldType
 
 
@@ -137,12 +143,38 @@ def GetDataProperty(fieldType, fieldName, script):
 
 
 def GetFieldInitDataSize(fieldType, script):
-    if '[][]' in fieldType or 'double_slc' in fieldType or 'map' in fieldType or 'dictionary' in fieldType:
-        script.AppendLine(f'reader.BaseStream.Position += reader.ReadUInt16();')
+    if '[][]' in fieldType or 'double_slc' in fieldType:
+        script.AppendLine(f'reader.ReadUInt16();')
+        script.AppendLine(f'var valueRow = reader.ReadUInt16();')
+        script.BeginFor(f'var valueRowIndex = 0; valueRowIndex < valueRow; valueRowIndex++')
+        script.AppendLine(f'var valueCol = reader.ReadUInt16();')
+        script.BeginFor(f'var valueColIndex = 0; valueColIndex < valueCol; valueColIndex++')
+        if '[][]' in fieldType:
+            GetFieldInitDataSizeBase(fieldType[:-4], script)
+        else:
+            GetFieldInitDataSizeBase(fieldType.replace('double_slc|', ''), script)
+        script.EndFor()
+        script.EndFor()
+    elif 'map' in fieldType or 'dictionary' in fieldType:
+        if 'map' in fieldType:
+            pattern = r"map\|(\w+)\|(\w+)"
+        else:
+            pattern = r"dictionary<(\w+),(\w+)>"
+        matches = re.findall(pattern, fieldType, flags=re.IGNORECASE)
+        type1 = matches[0][0]
+        type2 = matches[0][1]
+        script.AppendLine(f"var count = reader.ReadUInt16();")
+        script.BeginFor(f"var index = 0; index < count; index++")
+        GetFieldInitDataSizeBase(type1, script)
+        GetFieldInitDataSizeBase(type2, script)
+        script.EndFor()
     elif '[]' in fieldType.lower() or 'slc' in fieldType.lower():
         script.AppendLine(f'var count = reader.ReadUInt16();')
         script.BeginFor(f'var arrIndex = 0; arrIndex < count; arrIndex++')
-        GetFieldInitDataSizeBase(fieldType[:-2], script)
+        if '[]' in fieldType.lower():
+            GetFieldInitDataSizeBase(fieldType[:-2], script)
+        else:
+            GetFieldInitDataSizeBase(fieldType.replace('slc|', ''), script)
         script.EndFor()
     else:
         GetFieldInitDataSizeBase(fieldType, script)
