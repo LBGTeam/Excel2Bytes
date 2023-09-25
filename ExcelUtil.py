@@ -136,6 +136,27 @@ def GetDataProperty(fieldType, fieldName, script):
         script.AppendLine(f"public {GetCShapeType(fieldType, True)} {fieldName};")
 
 
+def GetFieldInitDataSize(fieldType, script):
+    if '[][]' in fieldType or 'double_slc' in fieldType or 'map' in fieldType or 'dictionary' in fieldType:
+        script.AppendLine(f'reader.BaseStream.Position += reader.ReadUInt16();')
+    elif '[]' in fieldType.lower() or 'slc' in fieldType.lower():
+        script.AppendLine(f'var count = reader.ReadUInt16();')
+        script.BeginFor(f'var arrIndex = 0; arrIndex < count; arrIndex++')
+        GetFieldInitDataSizeBase(fieldType[:-2], script)
+        script.EndFor()
+    else:
+        GetFieldInitDataSizeBase(fieldType, script)
+
+
+def GetFieldInitDataSizeBase(fieldType, script):
+    if 'LNGRef' in fieldType:
+        script.AppendLine(f"reader.ReadUInt32();")
+    elif 'ResName' in fieldType or 'string' in fieldType:
+        script.AppendLine(f"reader.ReadBytes(reader.ReadUInt16());")
+    else:
+        script.AppendLine(f"reader.{GetTypeRead(fieldType)}();")
+
+
 def GetDataAssignment(fieldType, fieldName, script, isInitLNG=True):
     if 'LNGRef' in fieldType or 'ResName' in fieldType:
         script.BeginBrace()
@@ -263,12 +284,13 @@ def TurnBytesByExcel(excelName, excelTableData, startRow, startColumn, generateS
     scInit = CSScriptBuilder()
     scField = CSScriptBuilder()
     scProperty = CSScriptBuilder()
+    index = 0
     for row in rows:
         tBytes = b''
         tSize = 0
         fieldType = row[1]
         if generateScriptType == GenerateScriptType.FieldType:
-            GetFieldProperty(valueOldType, row[0], allSize, script)
+            GetFieldProperty(valueOldType, row[0], index, script)
         elif generateScriptType == GenerateScriptType.CustomTypeField:
             GetDataAssignment(fieldType, f'm_{row[0]}', scInit)
             GetCustomField(fieldType, row[0], scField)
@@ -286,6 +308,7 @@ def TurnBytesByExcel(excelName, excelTableData, startRow, startColumn, generateS
             dataBytes += struct.pack(f"{typeMap[SizeMap][0]}", tSize)
         dataBytes += tBytes
         allSize += tSize
+        index += 1
     if generateScriptType == GenerateScriptType.CustomTypeField:
         script.BeginMethod('InitData', 'public', 'void')
         script.AppendEnter()
