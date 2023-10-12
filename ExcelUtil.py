@@ -496,11 +496,13 @@ def SingleTurnBytes(fieldType, fieldValue):
             fieldValue = ''
         if fieldType == 'ResName':
             AddResRef(fieldValue)
-        value = (str(fieldValue)).encode('utf-8')
+        value = (str(fieldValue).rstrip('\0')).encode('utf-8')
 
-        strSize = len(str(value))
+        strSize = len(value)
+        print(str(fieldValue), strSize)
         byte = struct.pack(f"{typeMap[SizeMap][0]}", strSize) + struct.pack(f'{strSize}s', value)
         size = typeMap[SizeMap][1] + strSize
+
         return byte, size
     elif fieldType == 'LNGRef':
         if TableDataIsNone(fieldValue):
