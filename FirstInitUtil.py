@@ -47,7 +47,7 @@ def CreateTableManagerCs():
     script.BeginStaticMethod("UnInit")
     script.AppendLine("Debug.Assert(s_Inited, \"TableManager not init\");")
     script.AppendLine("s_Inited = false;")
-    script.AppendLine("foreach (var table in s_Cached)")
+    script.AppendLine("foreach (var table in s_Cached.ToArray())")
     script.BeginBrace()
     script.AppendLine("table.Dispose();")
     script.EndBrace()
